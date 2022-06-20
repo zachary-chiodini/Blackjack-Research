@@ -48,6 +48,7 @@ class Deck:
         return None
 
     def shuffle(self) -> None:
+        """This is a modern Fisher–Yates shuffle algorithm."""
         for i in range(len(self.cards) - 1, -1, -1):
             j = randint(0, i)
             self.cards[i], self.cards[j] = self.cards[j], self.cards[i]
