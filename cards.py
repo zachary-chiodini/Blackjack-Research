@@ -23,15 +23,18 @@ class Hand:
 
     def __init__(self, *args: Card):
         self.cards: List[Card] = list(args)
-        self.value: int = sum(card.value for card in args)
+        self.value = self._sum_values(*args)
 
-    def add(self, card: Card):
-        self.cards.append(card)
-        self.value += card.value
+    def add(self, *args: Card) -> None:
+        self.cards.extend(args)
+        self.value += self._sum_values(*args)
         return None
 
     def show(self) -> List[Tuple[str, str]]:
         return [card.show() for card in self.cards]
+
+    def _sum_values(*args: Card) -> int:
+        return sum(card.value for card in args)
 
 
 class Deck:
