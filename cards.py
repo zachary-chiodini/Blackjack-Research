@@ -44,7 +44,7 @@ class Hand:
     def _add_values(self, *args: Card) -> None:
         for card in args:
             if card.ace and isinstance(self.value, IntArray):
-                self.value += 1
+                self.value += Int8(1)
             else:
                 self.value += card.value
         return None
