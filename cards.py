@@ -56,6 +56,3 @@ class Deck:
             j = randint(0, i)
             self.cards[i], self.cards[j] = self.cards[j], self.cards[i]
         return None
-
-    def _show(self) -> List[Tuple[str, str]]:
-        return [card.show() for card in self.cards]
