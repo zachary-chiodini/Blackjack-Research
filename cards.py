@@ -26,6 +26,7 @@ class Hand:
 
     def add(self, card: Card):
         self.cards.append(card)
+        self.value += card.value
         return None
 
     def show(self) -> List[Tuple[str, str]]:
