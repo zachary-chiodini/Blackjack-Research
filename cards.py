@@ -1,5 +1,5 @@
-from random import randint
-from typing import Text, List, Tuple
+from random import randint, uniform
+from typing import Text, List, Tuple, Union
 
 
 class Card:
@@ -11,7 +11,7 @@ class Card:
         self.rank = rank
         self.suit = suit
         self.face_up = face_up
-        self.value = self.rank_map[rank]
+        self.value: int = self.rank_map[rank]
 
     def show(self) -> Tuple[str, str]:
         if self.face_up:
@@ -23,7 +23,7 @@ class Hand:
 
     def __init__(self, *args: Card):
         self.cards: List[Card] = list(args)
-        self.value = self._sum_values(*args)
+        self.value: int = self._sum_values(*args)
 
     def add(self, *args: Card) -> None:
         self.cards.extend(args)
@@ -33,7 +33,8 @@ class Hand:
     def show(self) -> List[Tuple[str, str]]:
         return [card.show() for card in self.cards]
 
-    def _sum_values(*args: Card) -> int:
+    @staticmethod
+    def _sum_values(*args: Card) -> Union[List[int], int]:
         return sum(card.value for card in args)
 
 
@@ -43,6 +44,15 @@ class Deck:
 
     def __init__(self):
         self.cards: List[Card] = []
+        self.cards_dealt = 0
+
+    def cut(self, ratio: float = 0.0) -> None:
+        if self.cards:
+            if not 0.0 < ratio < 1.0:
+                ratio = uniform(0.0, 1.0)
+            n = int((len(self.cards) - 1) * ratio)
+            self.cards = self.cards[n:] + self.cards[:n]
+        return None
 
     def generate(self) -> None:
         for rank in self.ranks:
@@ -55,4 +65,10 @@ class Deck:
         for i in range(len(self.cards) - 1, -1, -1):
             j = randint(0, i)
             self.cards[i], self.cards[j] = self.cards[j], self.cards[i]
+        self.cards_dealt = 0
         return None
+
+    def get_card(self) -> Card:
+        card = self.cards[self.cards_dealt]
+        self.cards_dealt += 1
+        return card
