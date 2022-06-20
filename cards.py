@@ -60,6 +60,11 @@ class Deck:
                 self.cards.append(Card(rank, suit))
         return None
 
+    def get_card(self) -> Card:
+        card = self.cards[self.cards_dealt]
+        self.cards_dealt += 1
+        return card
+
     def shuffle(self) -> None:
         """This is a modern Fisher–Yates shuffle algorithm."""
         for i in range(len(self.cards) - 1, -1, -1):
@@ -67,8 +72,3 @@ class Deck:
             self.cards[i], self.cards[j] = self.cards[j], self.cards[i]
         self.cards_dealt = 0
         return None
-
-    def get_card(self) -> Card:
-        card = self.cards[self.cards_dealt]
-        self.cards_dealt += 1
-        return card
