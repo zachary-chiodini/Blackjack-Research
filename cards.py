@@ -62,8 +62,8 @@ class Deck:
         if self.cards:
             if not 0.0 < ratio < 1.0:
                 ratio = uniform(0.0, 1.0)
-            n = int((len(self.cards) - 1) * ratio)
-            self.cards = self.cards[n:] + self.cards[:n]
+            index = int((len(self.cards) - 1) * ratio)
+            self.cards = self.cards[index:] + self.cards[:index]
         return None
 
     def generate(self) -> None:
