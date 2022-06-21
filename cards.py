@@ -72,7 +72,9 @@ class Deck:
                 self.cards.append(Card(rank, suit))
         return None
 
-    def get_card(self) -> Card:
+    def get_card(self) -> Union[Card, None]:
+        if self.cards_dealt == len(self.cards):
+            return None
         card = self.cards[self.cards_dealt]
         self.cards_dealt += 1
         return card
