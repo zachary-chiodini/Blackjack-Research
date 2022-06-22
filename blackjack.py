@@ -9,7 +9,6 @@ class Player:
         self.n = n
         self.hands: List[Hand] = []
         self.chips = chips
-        self.bet = False
 
     def double(self, hand: Hand) -> None:
         if self.chips <= hand.bet:
