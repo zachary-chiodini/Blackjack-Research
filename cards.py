@@ -122,7 +122,7 @@ class Shoe:
             penetration = 0.75
         self.cut_off = int(deck.card_count() * penetration)
 
-    def add(self, args: Card) -> None:
+    def add(self, *args: Card) -> None:
         self.deck.add(*args)
         return None
 
