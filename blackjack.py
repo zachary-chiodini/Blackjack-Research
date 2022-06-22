@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from cards import Card, Deck, Hand, Shoe, Tray
+from cards import Deck, Hand, Shoe, Tray
 
 
 class Player:
