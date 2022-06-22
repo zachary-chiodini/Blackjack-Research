@@ -125,3 +125,6 @@ class Shoe:
     def add(self, args: Card) -> None:
         self.deck.add(*args)
         return None
+
+    def get_card(self) -> Card:
+        return self.deck.get_card()
