@@ -5,12 +5,25 @@ from cards import Card, Deck, Hand
 
 class Player:
 
-    def __init__(self, n: int, chips: int = 100):
-        self.hands = [Hand()]
+    def __init__(self, n: int, chips: int = 1000):
         self.n = n
+        self.hands = [Hand()]
         self.chips = chips
         self.bet = 0
         self.choice = ''
+
+    def place_bet(self, minimum_bet: int) -> None:
+        if self.chips >= minimum_bet:
+            bet = abs(int(input(f'Player: {self.n}\nChips: {self.chips}\nPlace bet: ')))
+            if bet and bet < minimum_bet:
+                print(f'Minimum bet is {minimum_bet}.')
+                return self.place_bet(minimum_bet)
+            else:
+                self.bet = bet
+                self.chips -= bet
+        else:
+            self.bet = 0
+        return None
 
     def show_hand(self) -> List[List[Tuple[str, str]]]:
         return [hand.show() for hand in self.hands]
@@ -49,4 +62,25 @@ class Dealer:
 
 
 class Table:
-    pass
+
+    def __init__(self, players: int, decks: int, minimum_bet: int):
+        self.deck = Deck()
+        for i in range(decks):
+            self.deck.generate()
+        self.deck.shuffle()
+        self.minimum_bet = minimum_bet
+        self.dealer = Dealer(self.deck)
+        self.players = [Player(i) for i in range(1, players + 1)]
+
+    def play(self) -> None:
+        current_players = []
+        for player in self.players:
+            player.place_bet(self.minimum_bet)
+            if player.bet:
+                current_players.append(player)
+        self.dealer.deal_all(*current_players)
+        for player in current_players:
+            pass
+
+    def show(self) -> None:
+        pass
