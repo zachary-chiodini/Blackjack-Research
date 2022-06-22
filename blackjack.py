@@ -9,23 +9,38 @@ class Player:
         self.n = n
         self.hands: List[Hand] = []
         self.chips = chips
+        self.total_bet = 0
+        self.choices = {'h': self.void, 's': self.void, 'd': self.double,
+                        'y': self.split, 'sur': self.surrender}
+
+    def call(self, hand: Hand) -> str:
+        input_ = str(input(f'Player: {self.n}\nChips: {self.chips}\nBet: {self.total_bet}\n Your turn: '))
+        if input_ not in self.choices:
+            print(f'You must choose {self.choices.keys()}.')
+            return self.call()
+        self.choices[input_](hand)
+        return input_
 
     def double(self, hand: Hand) -> None:
         if self.chips <= hand.bet:
             self.chips -= hand.bet
+            self.total_bet += hand.bet
             hand.bet *= 2
         return None
 
     def place_bet(self, minimum_bet: int) -> bool:
+        self.total_bet = 0
         if self.chips >= minimum_bet:
             bet = abs(int(input(f'Player: {self.n}\nChips: {self.chips}\nPlace bet: ')))
-            if bet and bet < minimum_bet:
-                print(f'Minimum bet is {minimum_bet}.')
-                return self.place_bet(minimum_bet)
-            else:
-                self.hands.append(Hand(bet))
-                self.chips -= bet
-                return True
+            if bet:
+                if bet < minimum_bet:
+                    print(f'Minimum bet is {minimum_bet}.')
+                    return self.place_bet(minimum_bet)
+                else:
+                    self.hands.append(Hand(bet))
+                    self.total_bet += bet
+                    self.chips -= bet
+                    return True
         return False
 
     def show_hand(self) -> List[List[Tuple[str, str]]]:
@@ -34,8 +49,18 @@ class Player:
     def split(self, hand: Hand) -> None:
         card1, card2 = hand.cards
         self.hands.remove(hand)
-        split_bet = int(hand.bet / 2)
+        split_bet = hand.bet // 2
         self.hands.extend(Hand(split_bet, card1), Hand(split_bet, card2))
+        return None
+
+    def surrender(self, hand: Hand) -> None:
+        self.total_bet = 0
+        self.chips += hand.bet // 2
+        return None
+
+    @staticmethod
+    def void(*args) -> None:
+        pass
 
 
 class Dealer:
@@ -44,6 +69,13 @@ class Dealer:
         self.hand = Hand(bet=0)
         self.shoe = shoe
         self.tray = tray
+        self.choices = {'h': self.deal_card, 's': self.void, 'd': self.deal_card,
+                        'y': self.void, 'sur': self.discard}
+
+    def call_on(self, player: Player, hand: Hand) -> None:
+        choice = player.call(hand)
+        self.choices[choice](hand)
+        return None
 
     def deal_card(self, hand: Hand, face_up=True) -> None:
         card = self.shoe.get_card()
@@ -58,6 +90,8 @@ class Dealer:
             self.tray.deck.cut(ratio)
             self.shoe.add(*self.tray.deck.cards)
             self.tray.empty()
+            burn_card = self.shoe.get_card()
+            self.tray.add(burn_card)
         for player in args:
             self.deal_card(player.hands[0])
         self.deal_card(self.hand)
@@ -71,8 +105,16 @@ class Dealer:
             self.tray.add(*hand.cards)
         return None
 
+    def turn_card_up(self) -> None:
+        self.hand.cards[-1].face_up = True
+        return None
+
     def show_hand(self) -> List[Tuple[str, str]]:
         return self.hand.show()
+
+    @staticmethod
+    def void(*args) -> None:
+        pass
 
 
 class Table:
@@ -94,7 +136,9 @@ class Table:
                 current_players.append(player)
         self.dealer.deal_all(*current_players)
         for player in current_players:
-            pass
+            for hand in player.hands:
+                self.dealer.call_on(player, hand)
+        self.dealer.turn_card_up()
 
     def show(self) -> None:
         pass
