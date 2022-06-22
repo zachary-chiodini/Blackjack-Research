@@ -46,7 +46,7 @@ class Dealer:
         self.tray = tray
 
     def deal_card(self, hand: Hand, face_up=True) -> None:
-        card = self.shoe.deck.get_card()
+        card = self.shoe.get_card()
         card.face_up = face_up
         hand.add(card)
         return None
@@ -66,8 +66,9 @@ class Dealer:
         self.deal_card(self.hand, face_up=False)
         return None
 
-    def discard(self, args: Card) -> None:
-        self.tray.add(*args)
+    def discard(self, *args: Hand) -> None:
+        for hand in args:
+            self.tray.add(*hand.cards)
         return None
 
     def show_hand(self) -> List[Tuple[str, str]]:
