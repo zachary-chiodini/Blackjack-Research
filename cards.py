@@ -28,10 +28,11 @@ class Card:
 
 class Hand:
 
-    def __init__(self, *args: Card):
+    def __init__(self, bet: int, *args: Card):
         self.cards: List[Card] = list(args)
         self.value: Union[IntArray, Int8] = Int8(0)
         self._add_values(*args)
+        self.bet = bet
 
     def add(self, *args: Card) -> None:
         self.cards.extend(args)
@@ -58,12 +59,20 @@ class Deck:
         self.cards: List[Card] = []
         self.cards_dealt = 0
 
+    def add(self, *args: Card) -> None:
+        self.cards = self.cards[self.cards_dealt:] + args
+        self.cards_dealt = 0
+        return None
+
+    def card_count(self) -> int:
+        return len(self.cards) - self.cards_dealt
+
     def cut(self, ratio: float = 0.0) -> None:
         if self.cards:
             if not 0.0 < ratio < 1.0:
                 ratio = uniform(0.0, 1.0)
-            index = int((len(self.cards) - 1) * ratio)
-            self.cards = self.cards[index:] + self.cards[:index]
+            cut_index = int((len(self.cards) - 1) * ratio)
+            self.cards = self.cards[cut_index:] + self.cards[:cut_index]
         return None
 
     def generate(self) -> None:
@@ -85,4 +94,34 @@ class Deck:
             j = randint(0, i)
             self.cards[i], self.cards[j] = self.cards[j], self.cards[i]
         self.cards_dealt = 0
+        return None
+
+
+class Tray:
+
+    def __init__(self):
+        self.deck = Deck()
+
+    def add(self, args: Card) -> None:
+        self.deck.add(*args)
+        return None
+
+    def empty(self) -> None:
+        self.deck = Deck()
+        return None
+
+    def card_count(self) -> int:
+        return self.deck.card_count()
+
+
+class Shoe:
+
+    def __init__(self, deck: Deck, penetration: float = 0.75):
+        self.deck = deck
+        if not 0.0 < penetration < 1.0:
+            penetration = 0.75
+        self.cut_off = int(deck.card_count() * penetration)
+
+    def add(self, args: Card) -> None:
+        self.deck.add(*args)
         return None
