@@ -1,4 +1,7 @@
-from typing import List, Tuple
+from typing import List, NoReturn, Tuple
+
+from nptyping import Int8
+from numpy import any as npany, all as npall
 
 from cards import Deck, Hand, Shoe, Tray
 
@@ -43,6 +46,10 @@ class Player:
                     return True
         return False
 
+    def push(self, hand: Hand) -> None:
+        self.chips += hand.bet
+        return None
+
     def show_hand(self) -> List[List[Tuple[str, str]]]:
         return [hand.show() for hand in self.hands]
 
@@ -54,8 +61,15 @@ class Player:
         return None
 
     def surrender(self, hand: Hand) -> None:
-        self.total_bet = 0
         self.chips += hand.bet // 2
+        return None
+
+    def won(self, hand: Hand) -> None:
+        self.chips += 2 * hand.bet
+        return None
+
+    def won_blackjack(self, hand: Hand) -> None:
+        self.chips += int(hand.bet * 1.5)
         return None
 
     @staticmethod
@@ -72,6 +86,9 @@ class Dealer:
         self.choices = {'h': self.deal_card, 's': self.void, 'd': self.deal_card,
                         'y': self.void, 'sur': self.discard}
 
+    def below_seventeen(self) -> bool:
+        return not npany(Int8(21) >= self.hand.value >= Int8(17))
+
     def call_on(self, player: Player, hand: Hand) -> None:
         choice = player.call(hand)
         self.choices[choice](hand)
@@ -83,7 +100,7 @@ class Dealer:
         hand.add(card)
         return None
 
-    def deal_all(self, *args: Player) -> None:
+    def deal_all(self, players: List[Player]) -> None:
         if self.tray.card_count >= self.shoe.cut_off:
             self.tray.deck.shuffle()
             ratio = float(input('Player: 1\nDeck cut ratio: '))
@@ -92,10 +109,10 @@ class Dealer:
             self.tray.empty()
             burn_card = self.shoe.get_card()
             self.tray.add(burn_card)
-        for player in args:
+        for player in players:
             self.deal_card(player.hands[0])
         self.deal_card(self.hand)
-        for player in args:
+        for player in players.copy():
             self.deal_card(player.hands[0])
         self.deal_card(self.hand, face_up=False)
         return None
@@ -105,8 +122,8 @@ class Dealer:
             self.tray.add(*hand.cards)
         return None
 
-    def turn_card_up(self) -> None:
-        self.hand.cards[-1].face_up = True
+    def face_hole_card(self) -> None:
+        self.hand.cards[1].face_up = True
         return None
 
     def show_hand(self) -> List[Tuple[str, str]]:
@@ -129,16 +146,54 @@ class Table:
         self.players = [Player(i) for i in range(1, players + 1)]
         self.minimum_bet = minimum_bet
 
-    def play(self) -> None:
-        current_players = []
-        for player in self.players:
-            if player.place_bet(self.minimum_bet):
-                current_players.append(player)
-        self.dealer.deal_all(*current_players)
-        for player in current_players:
-            for hand in player.hands:
-                self.dealer.call_on(player, hand)
-        self.dealer.turn_card_up()
+    def beat_house(self, hand: Hand) -> bool:
+        return npany(hand.value > self.dealer.hand.value)
+
+    @staticmethod
+    def blackjack(hand: Hand) -> bool:
+        return npany(hand.value == Int8(21))
+
+    @staticmethod
+    def bust(hand: Hand) -> bool:
+        return npall(hand.value > Int8(21))
+
+    def play(self) -> NoReturn:
+        while True:
+            current_players = []
+            for player in self.players:
+                if player.place_bet(self.minimum_bet):
+                    current_players.append(player)
+            self.dealer.deal_all(current_players)
+            for player in current_players:
+                for hand in player.hands:
+                    self.dealer.call_on(player, hand)
+                    if self.blackjack(hand):
+                        player.won_blackjack(hand)
+                        self.dealer.discard(hand)
+                    elif self.bust(hand):
+                        self.dealer.discard(hand)
+            self.dealer.face_hole_card()
+            while self.dealer.below_seventeen():
+                self.dealer.deal_card(self.dealer.hand)
+            if self.bust(self.dealer.hand):
+                for player in current_players:
+                    for hand in player.hands:
+                        player.won(hand)
+            else:
+                for player in current_players:
+                    for hand in player.hands:
+                        if self.beat_house(hand):
+                            player.won(hand)
+                            self.dealer.discard(hand)
+                        elif self.tie_with_house(hand):
+                            player.push(hand)
+                            self.dealer.discard(hand)
+                        else:
+                            self.dealer.discard(hand)
+            self.dealer.discard(self.dealer.hand)
 
     def show(self) -> None:
         pass
+
+    def tie_with_house(self, hand: Hand) -> bool:
+        return npany(hand.value == self.dealer.hand.value)
