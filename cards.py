@@ -102,7 +102,7 @@ class Tray:
     def __init__(self):
         self.deck = Deck()
 
-    def add(self, args: Card) -> None:
+    def add(self, *args: Card) -> None:
         self.deck.add(*args)
         return None
 
