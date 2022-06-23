@@ -1,8 +1,8 @@
 from random import randint, uniform
 from typing import Text, List, Tuple, Union
 
-from numpy import array
 from nptyping import Int8, NDArray, Shape
+from numpy import array
 
 
 IntArray = NDArray[Shape['*'], Int8]
