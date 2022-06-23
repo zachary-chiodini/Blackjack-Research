@@ -10,7 +10,7 @@ class Player:
 
     def __init__(self, n: int, chips: int = 1000):
         self.n = n
-        self.hand: List[Hand] = []
+        self.hands: List[Hand] = []
         self.chips = chips
         self.total_bet = 0
         self.choices = {'h': self.void, 's': self.void, 'd': self.double,
@@ -31,6 +31,10 @@ class Player:
             hand.bet *= 2
         return None
 
+    def lost(self, hand: Hand) -> None:
+        self.hands.remove(hand)
+        return None
+
     def place_bet(self, minimum_bet: int) -> bool:
         self.total_bet = 0
         if self.chips >= minimum_bet:
@@ -40,7 +44,7 @@ class Player:
                     print(f'Minimum bet is {minimum_bet}.')
                     return self.place_bet(minimum_bet)
                 else:
-                    self.hand.append(Hand(bet))
+                    self.hands.append(Hand(bet))
                     self.total_bet += bet
                     self.chips -= bet
                     return True
@@ -48,28 +52,32 @@ class Player:
 
     def push(self, hand: Hand) -> None:
         self.chips += hand.bet
+        self.hands.remove(hand)
         return None
 
     def show_hand(self) -> List[List[Tuple[str, str]]]:
-        return [hand.show() for hand in self.hand]
+        return [hand.show() for hand in self.hands]
 
     def split(self, hand: Hand) -> None:
         card1, card2 = hand.cards
-        self.hand.remove(hand)
+        self.hands.remove(hand)
         split_bet = hand.bet // 2
-        self.hand.extend(Hand(split_bet, card1), Hand(split_bet, card2))
+        self.hands.extend(Hand(split_bet, card1), Hand(split_bet, card2))
         return None
 
     def surrender(self, hand: Hand) -> None:
         self.chips += hand.bet // 2
+        self.hands.remove(hand)
         return None
 
     def won(self, hand: Hand) -> None:
         self.chips += 2 * hand.bet
+        self.hands.remove(hand)
         return None
 
     def won_blackjack(self, hand: Hand) -> None:
         self.chips += int(hand.bet * 1.5)
+        self.hands.remove(hand)
         return None
 
     @staticmethod
@@ -110,19 +118,16 @@ class Dealer:
             burn_card = self.shoe.get_card()
             self.tray.add(burn_card)
         for player in players:
-            self.deal_card(player.hand[0])
+            self.deal_card(player.hands[0])
         self.deal_card(self.hand)
         for player in players.copy():
-            self.deal_card(player.hand[0])
+            self.deal_card(player.hands[0])
         self.deal_card(self.hand, face_up=False)
         return None
 
-    def discard(self, player: Player, hand: Hand) -> None:
-        if isinstance(player.hand, list):
-            player.hand.remove(hand)
-        else:
-            player.hand = Hand(0)
-        self.tray.add(*hand.cards)
+    def discard(self, *args: Hand) -> None:
+        for hand in args:
+            self.tray.add(*hand.cards)
         return None
 
     def face_hole_card(self) -> None:
@@ -168,23 +173,25 @@ class Table:
                     current_players.append(player)
             self.dealer.deal_all(current_players)
             for player in current_players:
-                for hand in player.hand:
+                for hand in player.hands:
                     self.dealer.call_on(player, hand)
                     if self.blackjack(hand):
                         player.won_blackjack(hand)
                         self.dealer.discard(hand)
                     elif self.bust(hand):
+                        player.lost(hand)
                         self.dealer.discard(hand)
             self.dealer.face_hole_card()
             while self.dealer.below_seventeen():
                 self.dealer.deal_card(self.dealer.hand)
             if self.bust(self.dealer.hand):
                 for player in current_players:
-                    for hand in player.hand:
+                    for hand in player.hands:
                         player.won(hand)
+                        self.dealer.discard(hand)
             else:
                 for player in current_players:
-                    for hand in player.hand:
+                    for hand in player.hands:
                         if self.beat_house(hand):
                             player.won(hand)
                             self.dealer.discard(hand)
@@ -192,8 +199,10 @@ class Table:
                             player.push(hand)
                             self.dealer.discard(hand)
                         else:
+                            player.lost(hand)
                             self.dealer.discard(hand)
             self.dealer.discard(self.dealer.hand)
+            self.dealer.hand = Hand(0)
 
     def show(self) -> None:
         pass
