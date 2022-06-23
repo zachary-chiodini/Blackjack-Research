@@ -42,10 +42,6 @@ class Hand:
     def show(self) -> List[Tuple[str, str]]:
         return [card.show() for card in self.cards]
 
-    def remove(self) -> None:
-        self.cards = []
-        self.value = Int8(0)
-
     def _add_values(self, *args: Card) -> None:
         for card in args:
             if card.ace and isinstance(self.value, IntArray):
