@@ -10,7 +10,7 @@ class Player:
 
     def __init__(self, n: int, chips: int = 1000):
         self.n = n
-        self.hands: List[Hand] = []
+        self.hand: List[Hand] = []
         self.chips = chips
         self.total_bet = 0
         self.choices = {'h': self.void, 's': self.void, 'd': self.double,
@@ -40,7 +40,7 @@ class Player:
                     print(f'Minimum bet is {minimum_bet}.')
                     return self.place_bet(minimum_bet)
                 else:
-                    self.hands.append(Hand(bet))
+                    self.hand.append(Hand(bet))
                     self.total_bet += bet
                     self.chips -= bet
                     return True
@@ -51,13 +51,13 @@ class Player:
         return None
 
     def show_hand(self) -> List[List[Tuple[str, str]]]:
-        return [hand.show() for hand in self.hands]
+        return [hand.show() for hand in self.hand]
 
     def split(self, hand: Hand) -> None:
         card1, card2 = hand.cards
-        self.hands.remove(hand)
+        self.hand.remove(hand)
         split_bet = hand.bet // 2
-        self.hands.extend(Hand(split_bet, card1), Hand(split_bet, card2))
+        self.hand.extend(Hand(split_bet, card1), Hand(split_bet, card2))
         return None
 
     def surrender(self, hand: Hand) -> None:
@@ -110,16 +110,19 @@ class Dealer:
             burn_card = self.shoe.get_card()
             self.tray.add(burn_card)
         for player in players:
-            self.deal_card(player.hands[0])
+            self.deal_card(player.hand[0])
         self.deal_card(self.hand)
         for player in players.copy():
-            self.deal_card(player.hands[0])
+            self.deal_card(player.hand[0])
         self.deal_card(self.hand, face_up=False)
         return None
 
-    def discard(self, *args: Hand) -> None:
-        for hand in args:
-            self.tray.add(*hand.cards)
+    def discard(self, player: Player, hand: Hand) -> None:
+        if isinstance(player.hand, list):
+            player.hand.remove(hand)
+        else:
+            player.hand = Hand(0)
+        self.tray.add(*hand.cards)
         return None
 
     def face_hole_card(self) -> None:
@@ -165,7 +168,7 @@ class Table:
                     current_players.append(player)
             self.dealer.deal_all(current_players)
             for player in current_players:
-                for hand in player.hands:
+                for hand in player.hand:
                     self.dealer.call_on(player, hand)
                     if self.blackjack(hand):
                         player.won_blackjack(hand)
@@ -177,11 +180,11 @@ class Table:
                 self.dealer.deal_card(self.dealer.hand)
             if self.bust(self.dealer.hand):
                 for player in current_players:
-                    for hand in player.hands:
+                    for hand in player.hand:
                         player.won(hand)
             else:
                 for player in current_players:
-                    for hand in player.hands:
+                    for hand in player.hand:
                         if self.beat_house(hand):
                             player.won(hand)
                             self.dealer.discard(hand)
