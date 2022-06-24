@@ -260,8 +260,8 @@ class Table:
     def show_score(self, player: Player, hand: Hand, result: str, blackjack: bool = False) -> None:
         multiplier = 1.5 * (int(blackjack) + 1)
         print(f'Player {player.n} {result}!\n'
-              f'Hand: {hand.show()}; Value: {hand.value}\n'
               f'House: {self.dealer.hand.show()}; Value: {self.dealer.hand.value}\n'
+              f'Player: {hand.show()}; Value: {hand.value}\n'
               f"You {result} {int((result == 'won') * multiplier * hand.bet + hand.bet)} chips.")
         return None
 
