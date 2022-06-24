@@ -43,6 +43,7 @@ class Player:
 
     def lost(self, hand: Hand) -> None:
         self.hands.remove(hand)
+        self.your_turn = False
         return None
 
     def place_bet(self, minimum_bet: int) -> bool:
@@ -193,13 +194,13 @@ class Table:
                     if len(player_hands_copy) < len(player.hands):
                         player_hands_copy.extend(player.hands)
                     self.show_hand(hand)
+                    if self.bust(hand):
+                        player.lost(hand)
+                        self.show_score(player, hand, 'lost')
+                        self.dealer.discard(hand)
                 if self.blackjack(hand):
                     player.won_blackjack(hand)
                     self.show_score(player, hand, 'won', blackjack=True)
-                    self.dealer.discard(hand)
-                elif self.bust(hand):
-                    player.lost(hand)
-                    self.show_score(player, hand, 'lost')
                     self.dealer.discard(hand)
         if self.blackjack(self.dealer.hand):
             for player in current_players:
