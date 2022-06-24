@@ -195,18 +195,18 @@ class Table:
             if player.place_bet(self.minimum_bet):
                 current_players.append(player)
         self.dealer.deal_all(current_players)
-        self.show_table()
+        self.show_hand(self.dealer.hand)
         for player in current_players:
             player_hands_copy = player.hands.copy()
             number_of_hands = 1
             for hand in player_hands_copy:
                 while player.your_turn:
+                    self.show_hand(hand)
                     self.dealer.call_on(player, hand)
                     if number_of_hands < len(player.hands):
                         self.dealer.deal_card(*player.hands)
                         player_hands_copy.extend(player.hands)
                         number_of_hands += 1
-                    self.show_hand(hand)
                     if self.bust(hand):
                         player.lost(hand)
                         self.show_score(player, hand, 'lost')
@@ -252,23 +252,17 @@ class Table:
         self.dealer.hand = Hand(0)
         return self.play()
 
+    @staticmethod
+    def show_hand(hand: Hand) -> None:
+        print(hand.show())
+        return None
+
     def show_score(self, player: Player, hand: Hand, result: str, blackjack: bool = False) -> None:
         multiplier = 1.5 * (int(blackjack) + 1)
         print(f'Player {player.n} {result}!\n'
               f'Hand: {hand.show()}; Value: {hand.value}\n'
               f'House: {self.dealer.hand.show()}; Value: {self.dealer.hand.value}\n'
               f"You {result} {int((result == 'won') * multiplier * hand.bet + hand.bet)} chips.")
-        return None
-
-    def show_table(self) -> None:
-        print(self.dealer.show_hand())
-        for player in self.players:
-            print(player.show_hand())
-        return None
-
-    @staticmethod
-    def show_hand(hand: Hand) -> None:
-        print(hand.show())
         return None
 
     def tie_with_house(self, hand: Hand) -> bool:
