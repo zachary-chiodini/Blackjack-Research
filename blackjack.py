@@ -118,7 +118,8 @@ class Dealer:
                         'y': self.void, 'sur': self.discard}
 
     def hand_below_seventeen(self) -> bool:
-        return not npany((Int8(21) >= self.hand.value) & (self.hand.value >= Int8(17)))
+        val = self.hand.value
+        return npany(val < 17) and not npany((17 <= val) & (val <= 21))
 
     def call_on(self, player: Player, hand: Hand) -> None:
         choice = player.call(hand)
