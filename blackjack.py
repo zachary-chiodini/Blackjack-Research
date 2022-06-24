@@ -117,8 +117,8 @@ class Dealer:
         self.choices = {'h': self.deal_card, 's': self.void, 'd': self.deal_card,
                         'y': self.void, 'sur': self.discard}
 
-    def below_seventeen(self) -> bool:
-        return not (npany(Int8(21) >= self.hand.value) & npany(self.hand.value >= Int8(17)))
+    def hand_below_seventeen(self) -> bool:
+        return not npany((Int8(21) >= self.hand.value) & (self.hand.value >= Int8(17)))
 
     def call_on(self, player: Player, hand: Hand) -> None:
         choice = player.call(hand)
@@ -224,7 +224,7 @@ class Table:
             return self.play()
         self.dealer.face_hole_card()
         self.show_hand(self.dealer.hand)
-        while self.dealer.below_seventeen():
+        while self.dealer.hand_below_seventeen():
             self.dealer.deal_card(self.dealer.hand)
             self.show_hand(self.dealer.hand)
         if self.bust(self.dealer.hand):
