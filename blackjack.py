@@ -84,7 +84,7 @@ class Player:
         return None
 
     def won_blackjack(self, hand: Hand) -> None:
-        self.chips += int(hand.bet * 1.5)
+        self.chips += int(hand.bet * 2.5)
         self.hands.remove(hand)
         return None
 
@@ -182,9 +182,12 @@ class Table:
         self.dealer.deal_all(current_players)
         self.show_table()
         for player in current_players:
-            for hand in player.hands:
+            player_hands_copy = player.hands.copy()
+            for hand in player_hands_copy:
                 while player.your_turn:
                     self.dealer.call_on(player, hand)
+                    if len(player_hands_copy) < len(player.hands):
+                        player_hands_copy.extend(player.hands)
                     self.show_hand(hand)
                 if self.blackjack(hand):
                     print(f'Player {player.n} won Blackjack.')
