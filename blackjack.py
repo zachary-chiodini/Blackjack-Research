@@ -18,7 +18,11 @@ class Player:
                         'y': self.split, 'sur': self.surrender}
 
     def call(self, hand: Hand) -> str:
-        input_ = str(input(f'Player: {self.n}\nChips: {self.chips}\nBet: {self.total_bet}\n Your turn: '))
+        input_ = str(input(f'Player: {self.n}\n'
+                           f'Chips: {self.chips}\n'
+                           f'Bet: {self.total_bet}\n'
+                           f'Hand: {hand.value}\n'
+                           'Your turn: '))
         if input_ not in self.choices:
             print(f'You must choose {self.choices.keys()}.')
             return self.call()
@@ -190,18 +194,18 @@ class Table:
                         player_hands_copy.extend(player.hands)
                     self.show_hand(hand)
                 if self.blackjack(hand):
-                    print(f'Player {player.n} won Blackjack.')
                     player.won_blackjack(hand)
+                    self.show_score(player, hand, 'won', blackjack=True)
                     self.dealer.discard(hand)
                 elif self.bust(hand):
-                    print(f'Player {player.n} busted.')
                     player.lost(hand)
+                    self.show_score(player, hand, 'lost')
                     self.dealer.discard(hand)
         if self.blackjack(self.dealer.hand):
-            print('Dealer got Blackjack.')
             for player in current_players:
                 for hand in player.hands:
                     player.lost(hand)
+                    self.show_score(player, hand, 'lost')
                     self.dealer.discard(hand)
             return self.play()
         self.dealer.face_hole_card()
@@ -210,31 +214,38 @@ class Table:
             self.dealer.deal_card(self.dealer.hand)
             self.show_hand(self.dealer.hand)
         if self.bust(self.dealer.hand):
-            print('Dealer got bust.')
             for player in current_players:
                 for hand in player.hands:
                     player.won(hand)
-                    print(f'Player {player.n} won {2 * hand.bet}')
+                    self.show_score(player, hand, 'won')
                     self.dealer.discard(hand)
             return self.play()
         self.show_table()
         for player in current_players:
             for hand in player.hands:
                 if self.beat_house(hand):
-                    print(f'Player {player.n} beat the house: {hand.show()}')
                     player.won(hand)
+                    self.show_score(player, hand, 'won')
                     self.dealer.discard(hand)
                 elif self.tie_with_house(hand):
-                    print(f'Player {player.n} tied with the house: {hand.show()}')
                     player.push(hand)
+                    self.show_score(player, hand, 'tied')
                     self.dealer.discard(hand)
                 else:
-                    print(f'Player {player.n} lost to the house: {hand.show()}')
                     player.lost(hand)
+                    self.show_score(player, hand, 'lost')
                     self.dealer.discard(hand)
         self.dealer.discard(self.dealer.hand)
         self.dealer.hand = Hand(0)
         return self.play()
+
+    def show_score(self, player: Player, hand: Hand, result: str, blackjack: bool = False) -> None:
+        multiplier = 1.5 * (int(blackjack) + 1)
+        print(f'Player {player.n} {result}!\n'
+              f'Hand: {hand.show()}; Value: {hand.value}\n'
+              f'House: {self.dealer.hand.show()}; Value: {self.dealer.hand.value}\n'
+              f"You {result} {int(result == 'won') * multiplier * hand.bet + hand.bet} chips.")
+        return None
 
     def show_table(self) -> None:
         print(self.dealer.show_hand())
