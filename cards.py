@@ -60,7 +60,7 @@ class Deck:
         self.cards_dealt = 0
 
     def add(self, *args: Card) -> None:
-        self.cards = self.cards[self.cards_dealt:] + args
+        self.cards = self.cards[self.cards_dealt:] + list(args)
         self.cards_dealt = 0
         return None
 
