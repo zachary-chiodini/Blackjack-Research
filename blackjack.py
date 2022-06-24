@@ -194,18 +194,18 @@ class Table:
                 for hand in player.hands:
                     player.won(hand)
                     self.dealer.discard(hand)
-        else:
-            for player in current_players:
-                for hand in player.hands:
-                    if self.beat_house(hand):
-                        player.won(hand)
-                        self.dealer.discard(hand)
-                    elif self.tie_with_house(hand):
-                        player.push(hand)
-                        self.dealer.discard(hand)
-                    else:
-                        player.lost(hand)
-                        self.dealer.discard(hand)
+            return self.play()
+        for player in current_players:
+            for hand in player.hands:
+                if self.beat_house(hand):
+                    player.won(hand)
+                    self.dealer.discard(hand)
+                elif self.tie_with_house(hand):
+                    player.push(hand)
+                    self.dealer.discard(hand)
+                else:
+                    player.lost(hand)
+                    self.dealer.discard(hand)
         self.dealer.discard(self.dealer.hand)
         self.dealer.hand = Hand(0)
         return self.play()
