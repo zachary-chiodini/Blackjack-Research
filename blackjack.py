@@ -188,12 +188,14 @@ class Table:
         self.show_table()
         for player in current_players:
             player_hands_copy = player.hands.copy()
+            number_of_hands = 1
             for hand in player_hands_copy:
                 while player.your_turn:
                     self.dealer.call_on(player, hand)
-                    if len(player_hands_copy) < len(player.hands):
+                    if number_of_hands < len(player.hands):
                         self.dealer.deal_card(*player.hands)
                         player_hands_copy.extend(player.hands)
+                        number_of_hands += 1
                     self.show_hand(hand)
                     if self.bust(hand):
                         player.lost(hand)
