@@ -234,7 +234,6 @@ class Table:
                     self.show_score(player, hand, 'won')
                     self.dealer.discard(hand)
             return self.play()
-        self.show_table()
         for player in current_players:
             for hand in player.hands:
                 if self.beat_house(hand):
@@ -258,7 +257,7 @@ class Table:
         print(f'Player {player.n} {result}!\n'
               f'Hand: {hand.show()}; Value: {hand.value}\n'
               f'House: {self.dealer.hand.show()}; Value: {self.dealer.hand.value}\n'
-              f"You {result} {int(result == 'won') * multiplier * hand.bet + hand.bet} chips.")
+              f"You {result} {int((result == 'won') * multiplier * hand.bet + hand.bet)} chips.")
         return None
 
     def show_table(self) -> None:
