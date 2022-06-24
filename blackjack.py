@@ -1,4 +1,4 @@
-from typing import List, NoReturn, Tuple
+from typing import List, NoReturn, Tuple, Union
 
 from nptyping import Int8
 from numpy import any as npany, all as npall
@@ -29,13 +29,16 @@ class Player:
         self.choices[input_](hand)
         return input_
 
-    def double(self, hand: Hand) -> None:
-        if self.chips <= hand.bet:
-            self.chips -= hand.bet
-            self.total_bet += hand.bet
-            hand.bet *= 2
-        self.your_turn = False
-        return None
+    def double(self, hand: Hand) -> Union[None, str]:
+        if len(hand.cards) == 2:
+            if self.chips <= hand.bet:
+                self.chips -= hand.bet
+                self.total_bet += hand.bet
+                hand.bet *= 2
+                self.your_turn = False
+                return None
+        print('You are not allowed to double.')
+        return self.call(hand)
 
     def stand(self, *args) -> None:
         self.your_turn = False
@@ -70,18 +73,25 @@ class Player:
     def show_hand(self) -> List[List[Tuple[str, str]]]:
         return [hand.show() for hand in self.hands]
 
-    def split(self, hand: Hand) -> None:
-        card1, card2 = hand.cards
-        self.hands.remove(hand)
-        split_bet = hand.bet // 2
-        self.hands.extend([Hand(split_bet, card1), Hand(split_bet, card2)])
-        return None
+    def split(self, hand: Hand) -> Union[None, str]:
+        if len(hand.cards) == 2:
+            card1, card2 = hand.cards
+            if card1.rank == card2.rank:
+                self.hands.remove(hand)
+                split_bet = hand.bet // 2
+                self.hands.extend([Hand(split_bet, card1), Hand(split_bet, card2)])
+                return None
+        print('You are not allowed to split.')
+        return self.call(hand)
 
-    def surrender(self, hand: Hand) -> None:
-        self.chips += hand.bet // 2
-        self.hands.remove(hand)
-        self.your_turn = False
-        return None
+    def surrender(self, hand: Hand) -> Union[None, str]:
+        if len(hand.cards) == 2:
+            self.chips += hand.bet // 2
+            self.hands.remove(hand)
+            self.your_turn = False
+            return None
+        print('You are not allowed to surrender.')
+        return self.call(hand)
 
     def won(self, hand: Hand) -> None:
         self.chips += 2 * hand.bet
