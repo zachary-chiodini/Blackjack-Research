@@ -25,7 +25,7 @@ class Player:
                            'Your turn: '))
         if input_ not in self.choices:
             print(f'You must choose {self.choices.keys()}.')
-            return self.call()
+            return self.call(hand)
         self.choices[input_](hand)
         return input_
 
