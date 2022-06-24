@@ -115,10 +115,11 @@ class Dealer:
         self.choices[choice](hand)
         return None
 
-    def deal_card(self, hand: Hand, face_up=True) -> None:
-        card = self.shoe.get_card()
-        card.face_up = face_up
-        hand.add(card)
+    def deal_card(self, *args: Hand, face_up=True) -> None:
+        for hand in args:
+            card = self.shoe.get_card()
+            card.face_up = face_up
+            hand.add(card)
         return None
 
     def deal_all(self, players: List[Player]) -> None:
@@ -179,7 +180,6 @@ class Table:
         return npall(hand.value > Int8(21))
 
     def play(self) -> NoReturn:
-        self.show_table()
         current_players = []
         for player in self.players:
             if player.place_bet(self.minimum_bet):
@@ -192,6 +192,7 @@ class Table:
                 while player.your_turn:
                     self.dealer.call_on(player, hand)
                     if len(player_hands_copy) < len(player.hands):
+                        self.dealer.deal_card(*player.hands)
                         player_hands_copy.extend(player.hands)
                     self.show_hand(hand)
                     if self.bust(hand):
