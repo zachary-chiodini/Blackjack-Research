@@ -68,6 +68,7 @@ class Player:
     def push(self, hand: Hand) -> None:
         self.chips += hand.bet
         self.hands.remove(hand)
+        self.your_turn = False
         return None
 
     def show_hand(self) -> List[List[Tuple[str, str]]]:
@@ -101,6 +102,7 @@ class Player:
     def won_blackjack(self, hand: Hand) -> None:
         self.chips += int(hand.bet * 2.5)
         self.hands.remove(hand)
+        self.your_turn = False
         return None
 
     @staticmethod
@@ -201,6 +203,11 @@ class Table:
             player_hands_copy = player.hands.copy()
             number_of_hands = 1
             for hand in player_hands_copy:
+                if self.blackjack(hand):
+                    player.won_blackjack(hand)
+                    self.show_hand(hand)
+                    self.show_score(player, hand, 'won', blackjack=True)
+                    self.dealer.discard(hand)
                 while player.your_turn:
                     self.show_hand(hand)
                     self.dealer.call_on(player, hand)
@@ -212,10 +219,6 @@ class Table:
                         player.lost(hand)
                         self.show_score(player, hand, 'lost')
                         self.dealer.discard(hand)
-                if self.blackjack(hand):
-                    player.won_blackjack(hand)
-                    self.show_score(player, hand, 'won', blackjack=True)
-                    self.dealer.discard(hand)
         if self.blackjack(self.dealer.hand):
             for player in current_players:
                 for hand in player.hands:
