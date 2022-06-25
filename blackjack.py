@@ -221,9 +221,10 @@ class Player:
         if len(hand.cards) == 2 and self.chips >= hand.bet:
             card1, card2 = hand.cards
             if card1.rank == card2.rank:
+                self.chips -= hand.bet
+                self.total_bet += hand.bet
                 self.hands.remove(hand)
                 self.hands.extend([Hand(hand.bet, card1), Hand(hand.bet, card2)])
-                self.chips -= hand.bet
                 self.your_turn = False
                 return 'y'
         print('You are not allowed to split.')
@@ -451,10 +452,10 @@ class Table:
         def if_result(s: str) -> int:
             return int(result == s)
         title = 'Winner' * if_result('won') + 'Loser' * if_result('lost') + 'Standoff' * if_result('tied')
-        multiplier = 0.5 * int(blackjack) + 1
+        multiplier = (0.5 * int(blackjack)) + 1
         print(f"Player {player.n} {result}{' Blackjack' * blackjack}!\n"
               f"{title}: {hand.show()}; Value: {hand.value}\n"
-              f"You {result} {int((result == 'won') * multiplier * hand.bet + hand.bet)} chips.")
+              f"You {result} {int(((result == 'won') * multiplier * hand.bet) + hand.bet)} chips.")
         sleep(SLEEP_INT)
         return None
 
