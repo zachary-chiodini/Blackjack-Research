@@ -225,6 +225,20 @@ class Table:
             return None
         self.dealer.deal_all(current_players)
         self.dealer.show_hand(face_hole_card=False)
+        if self.blackjack(self.dealer.hand):
+            self.dealer.face_hole_card()
+            self.dealer.show_hand()
+            for player in current_players:
+                for hand in player.hands:
+                    if self.blackjack(hand):
+                        player.push(hand)
+                        self.show_score(player, hand, 'tied')
+                        self.dealer.discard(hand)
+                    else:
+                        player.lost(hand)
+                        self.show_score(player, hand, 'lost')
+                        self.dealer.discard(hand)
+            return self.play()
         for player in current_players:
             player_hands_copy = player.hands.copy()
             last_n_hands = 1
@@ -243,12 +257,6 @@ class Table:
                         player.lost(hand)
                         self.show_score(player, hand, 'lost')
                         self.dealer.discard(hand)
-        if self.blackjack(self.dealer.hand):
-            for player in current_players:
-                for hand in player.hands:
-                    player.lost(hand)
-                    self.show_score(player, hand, 'lost')
-                    self.dealer.discard(hand)
         self.dealer.face_hole_card()
         self.dealer.show_hand()
         while self.dealer.hand_below_seventeen():
