@@ -215,8 +215,8 @@ class Table:
             number_of_hands = 1
             for hand in player_hands_copy:
                 if self.blackjack(hand):
-                    player.won_blackjack(hand)
                     player.show_hand(hand)
+                    player.won_blackjack(hand)
                     self.show_score(player, hand, 'won', blackjack=True)
                     self.dealer.discard(hand)
                 while player.your_turn:
