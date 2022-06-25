@@ -18,7 +18,7 @@ class Player:
         self.chips = chips
         self.total_bet = 0
         self.your_turn = False
-        self.choices = {'h': self.void, 's': self.stand, 'd': self.double,
+        self.choices = {'h': self.hit, 's': self.stand, 'd': self.double,
                         'y': self.split, 'sur': self.surrender}
 
     def call(self, hand: Hand) -> str:
@@ -29,24 +29,27 @@ class Player:
             print(f'You must choose {self.choices.keys()}.')
             sleep(SLEEP_INT)
             return self.call(hand)
-        if self.choices[input_](hand) is None:
-            return input_
+        return self.choices[input_](hand)
 
-    def double(self, hand: Hand) -> Union[None, str]:
+    def double(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
             if self.chips >= hand.bet:
                 self.chips -= hand.bet
                 self.total_bet += hand.bet
                 hand.bet += hand.bet
                 self.your_turn = False
-                return None
+                return 'd'
         print('You are not allowed to double.')
         sleep(SLEEP_INT)
         return self.call(hand)
 
-    def stand(self, *args) -> None:
+    @staticmethod
+    def hit(*args) -> str:
+        return 'h'
+
+    def stand(self, *args) -> str:
         self.your_turn = False
-        return None
+        return 's'
 
     def lost(self, hand: Hand) -> None:
         self.hands.remove(hand)
@@ -79,7 +82,7 @@ class Player:
         sleep(SLEEP_INT)
         return None
 
-    def split(self, hand: Hand) -> Union[None, str]:
+    def split(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
             card1, card2 = hand.cards
             if card1.rank == card2.rank:
@@ -87,17 +90,17 @@ class Player:
                 split_bet = hand.bet // 2
                 self.hands.extend([Hand(split_bet, card1), Hand(split_bet, card2)])
                 self.your_turn = False
-                return None
+                return 'y'
         print('You are not allowed to split.')
         sleep(SLEEP_INT)
         return self.call(hand)
 
-    def surrender(self, hand: Hand) -> Union[None, str]:
+    def surrender(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
             self.chips += hand.bet // 2
             self.hands.remove(hand)
             self.your_turn = False
-            return None
+            return 'sur'
         print('You are not allowed to surrender.')
         sleep(SLEEP_INT)
         return self.call(hand)
@@ -112,10 +115,6 @@ class Player:
         self.hands.remove(hand)
         self.your_turn = False
         return None
-
-    @staticmethod
-    def void(*args) -> None:
-        pass
 
 
 class Dealer:
@@ -236,10 +235,10 @@ class Table:
             return None
         self.dealer.deal_all(current_players)
         self.dealer.show_hand(face_hole_card=False)
-        for player in current_players:
-            for hand in player.hands:
-                player.show_hand(hand)
         if self.blackjack(self.dealer.hand):
+            for player in current_players:
+                for hand in player.hands:
+                    player.show_hand(hand)
             self.dealer.face_hole_card()
             self.dealer.show_hand()
             for player in current_players:
@@ -257,6 +256,7 @@ class Table:
             player_hands_copy = player.hands.copy()
             for hand in player_hands_copy:
                 player.your_turn = True
+                player.show_hand(hand)
                 if self.blackjack(hand):
                     player.won_blackjack(hand)
                     self.show_score(player, hand, 'won', blackjack=True)
