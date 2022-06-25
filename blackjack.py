@@ -161,8 +161,11 @@ class Dealer:
         self.hand.cards[1].face_up = True
         return None
 
-    def show_hand(self) -> None:
-        print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.value}')
+    def show_hand(self, face_hole_card=True) -> None:
+        if face_hole_card:
+            print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.value}')
+        else:
+            print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.cards[0].value} +?')
         return None
 
     @staticmethod
@@ -201,7 +204,7 @@ class Table:
             if player.place_bet(self.minimum_bet):
                 current_players.append(player)
         self.dealer.deal_all(current_players)
-        self.dealer.show_hand()
+        self.dealer.show_hand(face_hole_card=False)
         for player in current_players:
             player_hands_copy = player.hands.copy()
             number_of_hands = 1
