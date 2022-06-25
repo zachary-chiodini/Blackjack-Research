@@ -263,7 +263,7 @@ class Table:
             return int(result == s)
         title = 'Winner' * if_result('won') + 'Loser' * if_result('lost') + 'Standoff' * if_result('tied')
         multiplier = 0.5 * int(blackjack) + 1
-        print(f'Player {player.n} {result}!\n'
+        print(f"Player {player.n} {result}{' Blackjack' * blackjack}!\n"
               f'House: {self.dealer.hand.show()}; Value: {self.dealer.hand.value}\n'
               f"{title}: {hand.show()}; Value: {hand.value}\n"
               f"You {result} {int((result == 'won') * multiplier * hand.bet + hand.bet)} chips.")
