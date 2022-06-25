@@ -141,8 +141,21 @@ class Player:
         self.chips = chips
         self.total_bet = 0
         self.your_turn = False
+        self.insurance = 0
         self.choices = {'h': self.hit, 's': self.stand, 'd': self.double,
                         'y': self.split, 'sur': self.surrender}
+
+    def ask_for_insurance(self) -> int:
+        input_ = str(input(f'Player {self.n}; Chips: {self.chips}; Insurance? (y/n) '))
+        if input_.lower().replace('es', '').strip() == 'y' or input_.strip() == '1':
+            price = self.total_bet // 2
+            if self.chips >= price:
+                self.chips -= price
+                self.total_bet += price
+                self.insurance = price
+                return price
+        self.insurance = 0
+        return 0
 
     def call(self, hand: Hand) -> str:
         input_ = str(input(f'Chips: {self.chips}; Bet: {self.total_bet}; Your turn: '))
@@ -226,6 +239,13 @@ class Player:
         print('You are not allowed to surrender.')
         sleep(SLEEP_INT)
         return self.call(hand)
+
+    def use_insurance(self, hand: Hand) -> None:
+        self.chips += self.insurance + hand.bet
+        print(f'Player {self.n} insured hand {hand.show()} for {self.insurance} chips.')
+        print(f'You receive f{hand.bet} chips insured with f{self.insurance} chips insurance.')
+        self.insurance = 0
+        return None
 
     def won(self, hand: Hand) -> None:
         self.chips += 2 * hand.bet
@@ -355,18 +375,27 @@ class Table:
         for player in current_players:
             for hand in player.hands:
                 player.show_hand(hand)
+        face_up_card = self.dealer.hand.cards[0]
+        if face_up_card.ace:
+            for player in current_players:
+                player.ask_for_insurance()
         if self.blackjack(self.dealer.hand):
             self.dealer.face_hole_card()
             self.dealer.show_hand()
             for player in current_players:
                 for hand in player.hands:
                     if self.blackjack(hand):
+                        if player.insurance:
+                            player.use_insurance(hand)
                         player.push(hand)
                         self.show_score(player, hand, 'tied')
                         self.dealer.discard(hand)
                     else:
-                        player.lost(hand)
-                        self.show_score(player, hand, 'lost')
+                        if player.insurance:
+                            player.use_insurance(hand)
+                        else:
+                            player.lost(hand)
+                            self.show_score(player, hand, 'lost')
                         self.dealer.discard(hand)
             return self.play()
         for player in current_players:
