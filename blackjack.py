@@ -391,6 +391,8 @@ class Table:
                         self.dealer.discard(hand)
         self.dealer.face_hole_card()
         self.dealer.show_hand()
+        if not any(player.hands for player in current_players):
+            return self.play()
         while self.dealer.hand_below_seventeen():
             self.dealer.deal_card(self.dealer.hand)
             self.dealer.show_hand()
