@@ -193,6 +193,8 @@ class Table:
         return npall(hand.value > Int8(21))
 
     def play(self) -> NoReturn:
+        self.dealer.discard(self.dealer.hand)
+        self.dealer.hand = Hand(bet=0)
         current_players = []
         for player in self.players:
             if player.place_bet(self.minimum_bet):
@@ -252,8 +254,6 @@ class Table:
                     player.lost(hand)
                     self.show_score(player, hand, 'lost')
                     self.dealer.discard(hand)
-        self.dealer.discard(self.dealer.hand)
-        self.dealer.hand = Hand(0)
         return self.play()
 
     @staticmethod
