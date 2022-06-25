@@ -397,7 +397,7 @@ class Table:
             self.dealer.face_hole_card()
             self.dealer.show_hand()
             for player in current_players:
-                for hand in player.hands:
+                for hand in player.hands.copy():
                     if self.blackjack(hand):
                         if player.insurance:
                             player.use_insurance(hand)
