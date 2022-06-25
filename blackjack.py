@@ -22,7 +22,7 @@ class Player:
                         'y': self.split, 'sur': self.surrender}
 
     def call(self, hand: Hand) -> str:
-        input_ = str(input(f'Chips: {self.chips}; Bet: {self.total_bet}; Your turn: '))
+        input_ = str(input(f'Player: {self.n}; Chips: {self.chips}; Bet: {self.total_bet}; Your turn: '))
         if input_ not in self.choices:
             print(f'You must choose {self.choices.keys()}.')
             sleep(SLEEP_INT)
@@ -122,7 +122,7 @@ class Dealer:
         self.hand = Hand(bet=0)
         self.shoe = shoe
         self.tray = tray
-        self.choices = {'h': self.hit, 's': self.void, 'd': self.double,
+        self.choices = {'h': self.hit, 's': self.void, 'd': self.hit,
                         'y': self.void, 'sur': self.surrender}
 
     def hand_below_seventeen(self) -> bool:
@@ -156,11 +156,6 @@ class Dealer:
         for player in players:
             self.deal_card(player.hands[0])
         self.deal_card(self.hand, face_up=False)
-        return None
-
-    def double(self, player: Player, hand: Hand) -> None:
-        self.deal_card(hand)
-        player.show_hand(hand)
         return None
 
     def discard(self, *args: Hand) -> None:
@@ -255,12 +250,11 @@ class Table:
             player_hands_copy = player.hands.copy()
             for hand in player_hands_copy:
                 player.your_turn = True
-                player.show_hand(hand)
                 if self.blackjack(hand):
                     player.won_blackjack(hand)
                     self.show_score(player, hand, 'won', blackjack=True)
                     self.dealer.discard(hand)
-                while player.your_turn:
+                while player.your_turn:5
                     self.dealer.call_on(player, hand)
                     if len(player_hands_copy) < len(player.hands):
                         split_hands = player.hands[-2:]
@@ -316,5 +310,5 @@ class Table:
 
 
 if __name__ == '__main__':
-    table = Table(players=1, decks=6, minimum_bet=50, penetration=0.75)
+    table = Table(players=2, decks=6, minimum_bet=50, penetration=0.75)
     table.play()
