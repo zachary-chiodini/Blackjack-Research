@@ -3,7 +3,7 @@ from time import sleep
 from typing import Text, List, Tuple, Union
 
 from nptyping import Int8, NDArray, Shape
-from numpy import any as npany, array, all as npall
+from numpy import any as npany, array, all as npall, vectorize
 
 
 SLEEP_INT = 1
@@ -361,10 +361,9 @@ class Table:
         self.minimum_bet = minimum_bet
 
     def beat_house(self, hand: Hand) -> bool:
-        house = self.dealer.hand.value
-        house_bool = (17 <= house) & (house <= 21)
-        hand_bool = (house < hand.value) & (hand.value <= 21)
-        return npany(house_bool & hand_bool)
+        winning_val_in = vectorize(
+            lambda i: npany((self.dealer.hand.value < i) & (i <= 21)))
+        return npany(winning_val_in(hand))
 
     @staticmethod
     def blackjack(hand: Hand) -> bool:
