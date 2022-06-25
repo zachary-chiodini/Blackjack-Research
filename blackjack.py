@@ -22,7 +22,7 @@ class Player:
                         'y': self.split, 'sur': self.surrender}
 
     def call(self, hand: Hand) -> str:
-        input_ = str(input(f'Player: {self.n}; Chips: {self.chips}; Bet: {self.total_bet}; Your turn: '))
+        input_ = str(input(f'Player {self.n}: [Chips: {self.chips}, Bet: {self.total_bet}]; Your turn: '))
         if input_ not in self.choices:
             print(f'You must choose {self.choices.keys()}.')
             sleep(SLEEP_INT)
@@ -55,14 +55,14 @@ class Player:
         return None
 
     def place_bet(self, minimum_bet: int) -> bool:
-        self.total_bet = 0
-        bet = abs(int(input(f'Player: {self.n}\nChips: {self.chips}\nPlace bet: ')))
+        bet = abs(int(input(f'Player {self.n}: [Chips: {self.chips}, Last Bet: {self.total_bet}]; Place bet: ')))
         if bet:
             if bet < minimum_bet:
                 print(f'Minimum bet is {minimum_bet}.')
                 sleep(SLEEP_INT)
                 return self.place_bet(minimum_bet)
             elif bet <= self.chips:
+                self.total_bet = 0
                 self.hands.append(Hand(bet))
                 self.total_bet += bet
                 self.chips -= bet
