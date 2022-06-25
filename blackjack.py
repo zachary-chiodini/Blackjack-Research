@@ -363,7 +363,7 @@ class Table:
     def beat_house(self, hand: Hand) -> bool:
         winning_val_in = vectorize(
             lambda i: npany((self.dealer.hand.value < i) & (i <= 21)))
-        return npany(winning_val_in(hand))
+        return npany(winning_val_in(hand.value))
 
     @staticmethod
     def blackjack(hand: Hand) -> bool:
