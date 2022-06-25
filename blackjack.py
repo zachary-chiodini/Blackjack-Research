@@ -442,13 +442,13 @@ class Table:
             self.dealer.show_hand()
         if self.bust(self.dealer.hand):
             for player in current_players:
-                for hand in player.hands:
+                for hand in player.hands.copy():
                     player.won(hand)
                     self.show_score(player, hand, 'won')
                     self.dealer.discard(hand)
             return self.play()
         for player in current_players:
-            for hand in player.hands:
+            for hand in player.hands.copy():
                 if self.beat_house(hand):
                     player.won(hand)
                     self.show_score(player, hand, 'won')
@@ -467,7 +467,7 @@ class Table:
             return int(result == s)
         title = 'Winner' * if_result('won') + 'Loser' * if_result('lost') + 'Standoff' * if_result('tied')
         multiplier = (0.5 * int(blackjack)) + 1
-        indent = len(f"{title}: ")
+        indent = len(f'{title}: ')
         print(f"Player {player.n} {result}{' Blackjack' * blackjack}!\n"
               f"{title}: {hand.show(indent=indent)}; Value: {hand.value}\n"
               f"You {result} {int(((result == 'won') * multiplier * hand.bet) + hand.bet)} chips.")
