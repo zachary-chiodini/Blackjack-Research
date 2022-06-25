@@ -244,8 +244,8 @@ class Player:
     def use_insurance(self, hand: Hand) -> None:
         self.chips += self.insurance + hand.bet
         print(f'Player {self.n} insured hand {hand.show()} for {self.insurance} chips.')
-        print(f'You receive f{hand.bet} chips insured with f{self.insurance} chips insurance.')
-        self.insurance = 0
+        print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
+        sleep(SLEEP_INT)
         return None
 
     def won(self, hand: Hand) -> None:
@@ -396,6 +396,7 @@ class Table:
                             player.use_insurance(hand)
                         else:
                             player.lost(hand)
+                            hand.bet += player.insurance
                             self.show_score(player, hand, 'lost')
                     self.dealer.discard(hand)
             return self.play()
