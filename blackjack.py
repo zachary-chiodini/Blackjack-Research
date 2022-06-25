@@ -406,6 +406,7 @@ class Table:
                     else:
                         if player.insurance:
                             player.use_insurance(hand)
+                            player.hands.remove(hand)
                         else:
                             player.lost(hand)
                             hand.bet += player.insurance
