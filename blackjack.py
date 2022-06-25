@@ -198,8 +198,12 @@ class Player:
         return None
 
     def place_bet(self, minimum_bet: int) -> bool:
-        bet = abs(int(input(f'Player {self.n}; Chips: {self.chips}; Place bet: ')))
+        bet = input(f'Player {self.n}; Chips: {self.chips}; Place bet: ')
         if bet:
+            try:
+                bet = abs(int(bet))
+            except ValueError:
+                bet = 0
             if bet < minimum_bet:
                 print(f'Minimum bet is {minimum_bet}.')
                 sleep(SLEEP_INT)
