@@ -165,7 +165,7 @@ class Dealer:
         if face_hole_card:
             print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.value}')
         else:
-            print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.cards[0].value} +?')
+            print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.cards[0].value}+')
         return None
 
     @staticmethod
