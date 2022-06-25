@@ -29,8 +29,8 @@ class Player:
             print(f'You must choose {self.choices.keys()}.')
             sleep(SLEEP_INT)
             return self.call(hand)
-        self.choices[input_](hand)
-        return input_
+        if self.choices[input_](hand) is None:
+            return input_
 
     def double(self, hand: Hand) -> Union[None, str]:
         if len(hand.cards) == 2:
