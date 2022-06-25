@@ -18,10 +18,9 @@ class Player:
                         'y': self.split, 'sur': self.surrender}
 
     def call(self, hand: Hand) -> str:
-        input_ = str(input(f'Player: {self.n}\n'
-                           f'Chips: {self.chips}\n'
+        self.show_hand(hand)
+        input_ = str(input(f'Chips: {self.chips}\n'
                            f'Bet: {self.total_bet}\n'
-                           f'Hand: {hand.value}\n'
                            'Your turn: '))
         if input_ not in self.choices:
             print(f'You must choose {self.choices.keys()}.')
@@ -71,8 +70,9 @@ class Player:
         self.your_turn = False
         return None
 
-    def show_hand(self) -> List[List[Tuple[str, str]]]:
-        return [hand.show() for hand in self.hands]
+    def show_hand(self, hand: Hand) -> None:
+        print(f'Player {self.n}: {hand.show()}; Value: {hand.value}')
+        return None
 
     def split(self, hand: Hand) -> Union[None, str]:
         if len(hand.cards) == 2:
@@ -161,8 +161,9 @@ class Dealer:
         self.hand.cards[1].face_up = True
         return None
 
-    def show_hand(self) -> List[Tuple[str, str]]:
-        return self.hand.show()
+    def show_hand(self) -> None:
+        print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.value}')
+        return None
 
     @staticmethod
     def void(*args) -> None:
@@ -200,18 +201,17 @@ class Table:
             if player.place_bet(self.minimum_bet):
                 current_players.append(player)
         self.dealer.deal_all(current_players)
-        self.show_hand(self.dealer.hand)
+        self.dealer.show_hand()
         for player in current_players:
             player_hands_copy = player.hands.copy()
             number_of_hands = 1
             for hand in player_hands_copy:
                 if self.blackjack(hand):
                     player.won_blackjack(hand)
-                    self.show_hand(hand)
+                    player.show_hand(hand)
                     self.show_score(player, hand, 'won', blackjack=True)
                     self.dealer.discard(hand)
                 while player.your_turn:
-                    self.show_hand(hand)
                     self.dealer.call_on(player, hand)
                     if number_of_hands < len(player.hands):
                         self.dealer.deal_card(*player.hands)
@@ -227,12 +227,11 @@ class Table:
                     player.lost(hand)
                     self.show_score(player, hand, 'lost')
                     self.dealer.discard(hand)
-            return self.play()
         self.dealer.face_hole_card()
-        self.show_hand(self.dealer.hand)
+        self.dealer.show_hand()
         while self.dealer.hand_below_seventeen():
             self.dealer.deal_card(self.dealer.hand)
-            self.show_hand(self.dealer.hand)
+            self.dealer.show_hand()
         if self.bust(self.dealer.hand):
             for player in current_players:
                 for hand in player.hands:
@@ -256,16 +255,14 @@ class Table:
                     self.dealer.discard(hand)
         return self.play()
 
-    @staticmethod
-    def show_hand(hand: Hand) -> None:
-        print(hand.show())
-        return None
-
     def show_score(self, player: Player, hand: Hand, result: str, blackjack: bool = False) -> None:
+        def if_result(s: str) -> int:
+            return int(result == s)
+        title = 'Winner' * if_result('won') + 'Loser' * if_result('lost') + 'Standoff' * if_result('tied')
         multiplier = 0.5 * int(blackjack) + 1
         print(f'Player {player.n} {result}!\n'
               f'House: {self.dealer.hand.show()}; Value: {self.dealer.hand.value}\n'
-              f'Player: {hand.show()}; Value: {hand.value}\n'
+              f"{title}: {hand.show()}; Value: {hand.value}\n"
               f"You {result} {int((result == 'won') * multiplier * hand.bet + hand.bet)} chips.")
         return None
 
