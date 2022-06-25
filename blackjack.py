@@ -71,7 +71,8 @@ class Player:
         return None
 
     def show_hand(self, hand: Hand) -> None:
-        print(f'Player {self.n}: {hand.show()}; Value: {hand.value}')
+        hand_n = self.hands.index(hand) + 1
+        print(f'Player {self.n}: {hand.show()}; Value: {hand.value}; Hand: {hand_n}')
         return None
 
     def split(self, hand: Hand) -> Union[None, str]:
@@ -186,7 +187,8 @@ class Table:
         self.minimum_bet = minimum_bet
 
     def beat_house(self, hand: Hand) -> bool:
-        return npany((self.dealer.hand.value < hand.value) & (hand.value <= 21))
+        house = self.dealer.hand.value
+        return npany((house < hand.value) & (house >= 17))
 
     @staticmethod
     def blackjack(hand: Hand) -> bool:
