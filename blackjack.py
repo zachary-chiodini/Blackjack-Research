@@ -30,7 +30,7 @@ class Player:
 
     def double(self, hand: Hand) -> Union[None, str]:
         if len(hand.cards) == 2:
-            if self.chips <= hand.bet:
+            if self.chips >= hand.bet:
                 self.chips -= hand.bet
                 self.total_bet += hand.bet
                 hand.bet *= 2
