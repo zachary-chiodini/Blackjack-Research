@@ -1,4 +1,4 @@
-from typing import List, NoReturn, Tuple, Union
+from typing import List, Union
 
 from nptyping import Int8
 from numpy import any as npany, all as npall
@@ -33,7 +33,7 @@ class Player:
             if self.chips >= hand.bet:
                 self.chips -= hand.bet
                 self.total_bet += hand.bet
-                hand.bet *= 2
+                hand.bet += hand.bet
                 self.your_turn = False
                 return None
         print('You are not allowed to double.')
@@ -51,17 +51,16 @@ class Player:
     def place_bet(self, minimum_bet: int) -> bool:
         self.your_turn = True
         self.total_bet = 0
-        if self.chips >= minimum_bet:
-            bet = abs(int(input(f'Player: {self.n}\nChips: {self.chips}\nPlace bet: ')))
-            if bet:
-                if bet < minimum_bet:
-                    print(f'Minimum bet is {minimum_bet}.')
-                    return self.place_bet(minimum_bet)
-                else:
-                    self.hands.append(Hand(bet))
-                    self.total_bet += bet
-                    self.chips -= bet
-                    return True
+        bet = abs(int(input(f'Player: {self.n}\nChips: {self.chips}\nPlace bet: ')))
+        if bet:
+            if bet < minimum_bet:
+                print(f'Minimum bet is {minimum_bet}.')
+                return self.place_bet(minimum_bet)
+            elif bet <= self.chips:
+                self.hands.append(Hand(bet))
+                self.total_bet += bet
+                self.chips -= bet
+                return True
         return False
 
     def push(self, hand: Hand) -> None:
@@ -200,13 +199,15 @@ class Table:
     def bust(hand: Hand) -> bool:
         return npall(hand.value > Int8(21))
 
-    def play(self) -> NoReturn:
+    def play(self) -> None:
         self.dealer.discard(self.dealer.hand)
         self.dealer.hand = Hand(bet=0)
         current_players = []
         for player in self.players:
             if player.place_bet(self.minimum_bet):
                 current_players.append(player)
+        if not current_players:
+            return None
         self.dealer.deal_all(current_players)
         self.dealer.show_hand(face_hole_card=False)
         for player in current_players:
