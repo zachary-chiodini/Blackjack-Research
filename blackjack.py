@@ -178,7 +178,7 @@ class Player:
         return None
 
     def place_bet(self, minimum_bet: int) -> bool:
-        bet = abs(int(input(f'Player: {self.n}; Chips: {self.chips}; Last Bet: {self.total_bet}; Place bet: ')))
+        bet = abs(int(input(f'Player {self.n}; Chips: {self.chips}; Place bet: ')))
         if bet:
             if bet < minimum_bet:
                 print(f'Minimum bet is {minimum_bet}.')
