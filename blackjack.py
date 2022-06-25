@@ -258,13 +258,13 @@ class Table:
                     self.dealer.discard(hand)
         return self.play()
 
-    def show_score(self, player: Player, hand: Hand, result: str, blackjack: bool = False) -> None:
+    @staticmethod
+    def show_score(player: Player, hand: Hand, result: str, blackjack: bool = False) -> None:
         def if_result(s: str) -> int:
             return int(result == s)
         title = 'Winner' * if_result('won') + 'Loser' * if_result('lost') + 'Standoff' * if_result('tied')
         multiplier = 0.5 * int(blackjack) + 1
         print(f"Player {player.n} {result}{' Blackjack' * blackjack}!\n"
-              f'House: {self.dealer.hand.show()}; Value: {self.dealer.hand.value}\n'
               f"{title}: {hand.show()}; Value: {hand.value}\n"
               f"You {result} {int((result == 'won') * multiplier * hand.bet + hand.bet)} chips.")
         return None
