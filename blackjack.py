@@ -223,9 +223,9 @@ class Player:
         return None
 
     def show_hand(self, *args: Hand) -> None:
-        hand_and_value = '; '.join([f'{hand.show()}; Value: {hand.value}' for hand in args])
-        print(f"Player {self.n}: {hand_and_value}")
-        sleep(SLEEP_INT)
+        for hand_and_value in [f'{hand.show()}; Value: {hand.value}' for hand in args]:
+            print(f"Player {self.n}: {hand_and_value}")
+            sleep(SLEEP_INT)
         return None
 
     def split(self, hand: Hand) -> str:
@@ -300,7 +300,7 @@ class Dealer:
     def deal_all(self, players: List[Player]) -> None:
         if self.tray.card_count() >= self.shoe.cut_off:
             self.tray.deck.shuffle()
-            ratio = float(input('Player: 1\nDeck cut ratio: '))
+            ratio = float(input('Deck cut ratio: '))
             self.tray.deck.cut(ratio)
             self.shoe.add(*self.tray.deck.cards)
             self.tray.empty()
@@ -308,10 +308,10 @@ class Dealer:
             self.tray.add(burner_card)
         for player in players:
             self.deal_card(player.hands[0])
-        self.deal_card(self.hand)
+        self.deal_card(self.hand, face_up=False)
         for player in players:
             self.deal_card(player.hands[0])
-        self.deal_card(self.hand, face_up=False)
+        self.deal_card(self.hand)
         return None
 
     def discard(self, *args: Hand) -> None:
@@ -320,7 +320,7 @@ class Dealer:
         return None
 
     def face_hole_card(self) -> None:
-        self.hand.cards[1].face_up = True
+        self.hand.cards[0].face_up = True
         return None
 
     def hit(self, player: Player, hand: Hand) -> None:
@@ -332,7 +332,7 @@ class Dealer:
         if face_hole_card:
             print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.value}')
         else:
-            print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.cards[0].value}+')
+            print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.cards[1].value}+')
         sleep(SLEEP_INT)
         return None
 
@@ -389,7 +389,7 @@ class Table:
         for player in current_players:
             for hand in player.hands:
                 player.show_hand(hand)
-        face_up_card = self.dealer.hand.cards[0]
+        face_up_card = self.dealer.hand.cards[1]
         if face_up_card.ace:
             for player in current_players:
                 player.ask_for_insurance()
