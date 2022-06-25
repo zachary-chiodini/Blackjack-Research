@@ -42,8 +42,15 @@ class Hand:
         self._add_values(*args)
         return None
 
-    def show(self) -> List[Tuple[str, str]]:
-        return [card.show() for card in self.cards]
+    def show(self, indent: int = 10) -> str:
+        top, bottom = '', ''
+        for card in self.cards:
+            rank, suit = card.show()
+            top += f'|{rank} {suit}|'
+            bottom += f'|{suit} {rank}|'
+        top += '\n'
+        bottom = (' ' * indent) + bottom
+        return top + bottom
 
     def _add_values(self, *args: Card) -> None:
         for card in args:
@@ -243,7 +250,8 @@ class Player:
 
     def use_insurance(self, hand: Hand) -> None:
         self.chips += self.insurance + hand.bet
-        print(f'Player {self.n} insured hand {hand.show()} for {self.insurance} chips.')
+        indent = len(f'Player {self.n} insured hand ')
+        print(f'Player {self.n} insured hand {hand.show(indent=indent)} for {self.insurance} chips.')
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
         sleep(SLEEP_INT)
         return None
@@ -454,8 +462,9 @@ class Table:
             return int(result == s)
         title = 'Winner' * if_result('won') + 'Loser' * if_result('lost') + 'Standoff' * if_result('tied')
         multiplier = (0.5 * int(blackjack)) + 1
+        indent = len(f"{title}: ")
         print(f"Player {player.n} {result}{' Blackjack' * blackjack}!\n"
-              f"{title}: {hand.show()}; Value: {hand.value}\n"
+              f"{title}: {hand.show(indent=indent)}; Value: {hand.value}\n"
               f"You {result} {int(((result == 'won') * multiplier * hand.bet) + hand.bet)} chips.")
         sleep(SLEEP_INT)
         return None
