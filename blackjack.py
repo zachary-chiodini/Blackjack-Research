@@ -1,3 +1,4 @@
+from time import sleep
 from typing import List, Union
 
 from nptyping import Int8
@@ -24,6 +25,7 @@ class Player:
                            'Your turn: '))
         if input_ not in self.choices:
             print(f'You must choose {self.choices.keys()}.')
+            sleep(1)
             return self.call(hand)
         self.choices[input_](hand)
         return input_
@@ -37,6 +39,7 @@ class Player:
                 self.your_turn = False
                 return None
         print('You are not allowed to double.')
+        sleep(1)
         return self.call(hand)
 
     def stand(self, *args) -> None:
@@ -55,6 +58,7 @@ class Player:
         if bet:
             if bet < minimum_bet:
                 print(f'Minimum bet is {minimum_bet}.')
+                sleep(1)
                 return self.place_bet(minimum_bet)
             elif bet <= self.chips:
                 self.hands.append(Hand(bet))
@@ -71,6 +75,7 @@ class Player:
 
     def show_hand(self, hand: Hand) -> None:
         print(f'Player {self.n}: {hand.show()}; Value: {hand.value}')
+        sleep(1)
         return None
 
     def split(self, hand: Hand) -> Union[None, str]:
@@ -82,6 +87,7 @@ class Player:
                 self.hands.extend([Hand(split_bet, card1), Hand(split_bet, card2)])
                 return None
         print('You are not allowed to split.')
+        sleep(1)
         return self.call(hand)
 
     def surrender(self, hand: Hand) -> Union[None, str]:
@@ -91,6 +97,7 @@ class Player:
             self.your_turn = False
             return None
         print('You are not allowed to surrender.')
+        sleep(1)
         return self.call(hand)
 
     def won(self, hand: Hand) -> None:
@@ -175,12 +182,14 @@ class Dealer:
             print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.value}')
         else:
             print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.cards[0].value}+')
+        sleep(1)
         return None
 
     def surrender(self, player: Player, hand: Hand) -> None:
         print(f'Player {player.n} surrendered hand.\n'
               f'You reclaim {hand.bet // 2} chips.')
         self.discard(hand)
+        sleep(1)
         return None
 
     @staticmethod
@@ -294,6 +303,7 @@ class Table:
         print(f"Player {player.n} {result}{' Blackjack' * blackjack}!\n"
               f"{title}: {hand.show()}; Value: {hand.value}\n"
               f"You {result} {int((result == 'won') * multiplier * hand.bet + hand.bet)} chips.")
+        sleep(1)
         return None
 
     def tie_with_house(self, hand: Hand) -> bool:
