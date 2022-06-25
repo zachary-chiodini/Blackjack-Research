@@ -78,7 +78,7 @@ class Player:
         return None
 
     def show_hand(self, *args: Hand) -> None:
-        hand_and_value = ', '.join([f'{hand.show()}; Value: {hand.value}' for hand in args])
+        hand_and_value = '; '.join([f'{hand.show()}; Value: {hand.value}' for hand in args])
         print(f"Player {self.n}: {hand_and_value}")
         sleep(SLEEP_INT)
         return None
