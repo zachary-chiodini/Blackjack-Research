@@ -100,6 +100,7 @@ class Player:
         return None
 
     def won_blackjack(self, hand: Hand) -> None:
+        self.show_hand(hand)
         self.chips += int(hand.bet * 2.5)
         self.hands.remove(hand)
         self.your_turn = False
@@ -116,8 +117,8 @@ class Dealer:
         self.hand = Hand(bet=0)
         self.shoe = shoe
         self.tray = tray
-        self.choices = {'h': self.deal_card, 's': self.void, 'd': self.deal_card,
-                        'y': self.void, 'sur': self.discard}
+        self.choices = {'h': self.hit, 's': self.void, 'd': self.double,
+                        'y': self.void, 'sur': self.surrender}
 
     def hand_below_seventeen(self) -> bool:
         val = self.hand.value
@@ -125,7 +126,7 @@ class Dealer:
 
     def call_on(self, player: Player, hand: Hand) -> None:
         choice = player.call(hand)
-        self.choices[choice](hand)
+        self.choices[choice](player, hand)
         return None
 
     def deal_card(self, *args: Hand, face_up=True) -> None:
@@ -152,6 +153,11 @@ class Dealer:
         self.deal_card(self.hand, face_up=False)
         return None
 
+    def double(self, player: Player, hand: Hand) -> None:
+        self.deal_card(hand)
+        player.show_hand(hand)
+        return None
+
     def discard(self, *args: Hand) -> None:
         for hand in args:
             self.tray.add(*hand.cards)
@@ -161,11 +167,21 @@ class Dealer:
         self.hand.cards[1].face_up = True
         return None
 
+    def hit(self, player: Player, hand: Hand) -> None:
+        self.deal_card(hand)
+        return None
+
     def show_hand(self, face_hole_card=True) -> None:
         if face_hole_card:
             print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.value}')
         else:
             print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.cards[0].value}+')
+        return None
+
+    def surrender(self, player: Player, hand: Hand) -> None:
+        print(f'Player {player.n} surrendered hand.\n'
+              f'You reclaim {hand.bet // 2} chips.')
+        self.discard(hand)
         return None
 
     @staticmethod
@@ -215,7 +231,6 @@ class Table:
             number_of_hands = 1
             for hand in player_hands_copy:
                 if self.blackjack(hand):
-                    player.show_hand(hand)
                     player.won_blackjack(hand)
                     self.show_score(player, hand, 'won', blackjack=True)
                     self.dealer.discard(hand)
