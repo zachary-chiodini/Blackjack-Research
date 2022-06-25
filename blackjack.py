@@ -22,7 +22,6 @@ class Player:
                         'y': self.split, 'sur': self.surrender}
 
     def call(self, hand: Hand) -> str:
-        self.show_hand(hand)
         input_ = str(input(f'Chips: {self.chips}\n'
                            f'Bet: {self.total_bet}\n'
                            'Your turn: '))
@@ -55,7 +54,6 @@ class Player:
         return None
 
     def place_bet(self, minimum_bet: int) -> bool:
-        self.your_turn = True
         self.total_bet = 0
         bet = abs(int(input(f'Player: {self.n}\nChips: {self.chips}\nPlace bet: ')))
         if bet:
@@ -88,6 +86,7 @@ class Player:
                 self.hands.remove(hand)
                 split_bet = hand.bet // 2
                 self.hands.extend([Hand(split_bet, card1), Hand(split_bet, card2)])
+                self.your_turn = False
                 return None
         print('You are not allowed to split.')
         sleep(SLEEP_INT)
@@ -109,7 +108,6 @@ class Player:
         return None
 
     def won_blackjack(self, hand: Hand) -> None:
-        self.show_hand(hand)
         self.chips += int(hand.bet * 2.5)
         self.hands.remove(hand)
         self.your_turn = False
@@ -152,12 +150,12 @@ class Dealer:
             self.tray.deck.cut(ratio)
             self.shoe.add(*self.tray.deck.cards)
             self.tray.empty()
-            burn_card = self.shoe.get_card()
-            self.tray.add(burn_card)
+            burner_card = self.shoe.get_card()
+            self.tray.add(burner_card)
         for player in players:
             self.deal_card(player.hands[0])
         self.deal_card(self.hand)
-        for player in players.copy():
+        for player in players:
             self.deal_card(player.hands[0])
         self.deal_card(self.hand, face_up=False)
         return None
@@ -178,6 +176,7 @@ class Dealer:
 
     def hit(self, player: Player, hand: Hand) -> None:
         self.deal_card(hand)
+        player.show_hand(hand)
         return None
 
     def show_hand(self, face_hole_card=True) -> None:
@@ -237,6 +236,9 @@ class Table:
             return None
         self.dealer.deal_all(current_players)
         self.dealer.show_hand(face_hole_card=False)
+        for player in current_players:
+            for hand in player.hands:
+                player.show_hand(hand)
         if self.blackjack(self.dealer.hand):
             self.dealer.face_hole_card()
             self.dealer.show_hand()
@@ -253,19 +255,18 @@ class Table:
             return self.play()
         for player in current_players:
             player_hands_copy = player.hands.copy()
-            last_n_hands = 1
             for hand in player_hands_copy:
+                player.your_turn = True
                 if self.blackjack(hand):
                     player.won_blackjack(hand)
                     self.show_score(player, hand, 'won', blackjack=True)
                     self.dealer.discard(hand)
                 while player.your_turn:
                     self.dealer.call_on(player, hand)
-                    if last_n_hands < len(player.hands):
+                    if len(player_hands_copy) < len(player.hands):
                         self.dealer.deal_card(*player.hands)
                         player_hands_copy.extend(player.hands)
-                        last_n_hands += 1
-                    if self.bust(hand):
+                    elif self.bust(hand):
                         player.lost(hand)
                         self.show_score(player, hand, 'lost')
                         self.dealer.discard(hand)
