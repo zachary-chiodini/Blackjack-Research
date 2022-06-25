@@ -1,5 +1,5 @@
 from time import sleep
-from typing import List, Union
+from typing import List
 
 from nptyping import Int8
 from numpy import any as npany, all as npall
@@ -22,9 +22,7 @@ class Player:
                         'y': self.split, 'sur': self.surrender}
 
     def call(self, hand: Hand) -> str:
-        input_ = str(input(f'Chips: {self.chips}\n'
-                           f'Bet: {self.total_bet}\n'
-                           'Your turn: '))
+        input_ = str(input(f'Chips: {self.chips}; Bet: {self.total_bet}; Your turn: '))
         if input_ not in self.choices:
             print(f'You must choose {self.choices.keys()}.')
             sleep(SLEEP_INT)
@@ -236,10 +234,10 @@ class Table:
             return None
         self.dealer.deal_all(current_players)
         self.dealer.show_hand(face_hole_card=False)
+        for player in current_players:
+            for hand in player.hands:
+                player.show_hand(hand)
         if self.blackjack(self.dealer.hand):
-            for player in current_players:
-                for hand in player.hands:
-                    player.show_hand(hand)
             self.dealer.face_hole_card()
             self.dealer.show_hand()
             for player in current_players:
