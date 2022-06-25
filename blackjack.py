@@ -254,7 +254,7 @@ class Table:
                     player.won_blackjack(hand)
                     self.show_score(player, hand, 'won', blackjack=True)
                     self.dealer.discard(hand)
-                while player.your_turn:5
+                while player.your_turn:
                     self.dealer.call_on(player, hand)
                     if len(player_hands_copy) < len(player.hands):
                         split_hands = player.hands[-2:]
