@@ -362,6 +362,7 @@ class Table:
         return npall(hand.value > Int8(21))
 
     def play(self) -> None:
+        sleep(SLEEP_INT)
         self.dealer.discard(self.dealer.hand)
         self.dealer.hand = Hand(bet=0)
         current_players = []
@@ -389,14 +390,13 @@ class Table:
                             player.use_insurance(hand)
                         player.push(hand)
                         self.show_score(player, hand, 'tied')
-                        self.dealer.discard(hand)
                     else:
                         if player.insurance:
                             player.use_insurance(hand)
                         else:
                             player.lost(hand)
                             self.show_score(player, hand, 'lost')
-                        self.dealer.discard(hand)
+                    self.dealer.discard(hand)
             return self.play()
         for player in current_players:
             player_hands_copy = player.hands.copy()
@@ -437,15 +437,13 @@ class Table:
                 if self.beat_house(hand):
                     player.won(hand)
                     self.show_score(player, hand, 'won')
-                    self.dealer.discard(hand)
                 elif self.tie_with_house(hand):
                     player.push(hand)
                     self.show_score(player, hand, 'tied')
-                    self.dealer.discard(hand)
                 else:
                     player.lost(hand)
                     self.show_score(player, hand, 'lost')
-                    self.dealer.discard(hand)
+                self.dealer.discard(hand)
         return self.play()
 
     @staticmethod
