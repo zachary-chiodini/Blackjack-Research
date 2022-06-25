@@ -70,8 +70,7 @@ class Player:
         return None
 
     def show_hand(self, hand: Hand) -> None:
-        hand_n = self.hands.index(hand) + 1
-        print(f'Player {self.n}: {hand.show()}; Value: {hand.value}; Hand: {hand_n}')
+        print(f'Player {self.n}: {hand.show()}; Value: {hand.value}')
         return None
 
     def split(self, hand: Hand) -> Union[None, str]:
@@ -228,7 +227,7 @@ class Table:
         self.dealer.show_hand(face_hole_card=False)
         for player in current_players:
             player_hands_copy = player.hands.copy()
-            number_of_hands = 1
+            last_n_hands = 1
             for hand in player_hands_copy:
                 if self.blackjack(hand):
                     player.won_blackjack(hand)
@@ -236,10 +235,10 @@ class Table:
                     self.dealer.discard(hand)
                 while player.your_turn:
                     self.dealer.call_on(player, hand)
-                    if number_of_hands < len(player.hands):
+                    if last_n_hands < len(player.hands):
                         self.dealer.deal_card(*player.hands)
                         player_hands_copy.extend(player.hands)
-                        number_of_hands += 1
+                        last_n_hands += 1
                     if self.bust(hand):
                         player.lost(hand)
                         self.show_score(player, hand, 'lost')
