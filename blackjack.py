@@ -187,8 +187,7 @@ class Table:
         self.minimum_bet = minimum_bet
 
     def beat_house(self, hand: Hand) -> bool:
-        house = self.dealer.hand.value
-        return npany((house < hand.value) & (house >= 17))
+        return npany((self.dealer.hand.value < hand.value) & (hand.value <= 21))
 
     @staticmethod
     def blackjack(hand: Hand) -> bool:
