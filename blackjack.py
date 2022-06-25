@@ -77,8 +77,8 @@ class Player:
         self.your_turn = False
         return None
 
-    def show_hand(self, *args: Hand) -> None:
-        print(f"Player {self.n}: {str([hand.show() for hand in args]).strip('[]')}; Value: {hand.value}")
+    def show_hand(self, hand: Hand) -> None:
+        print(f'Player {self.n}: {hand.show()}; Value: {hand.value}')
         sleep(SLEEP_INT)
         return None
 
@@ -264,8 +264,10 @@ class Table:
                 while player.your_turn:
                     self.dealer.call_on(player, hand)
                     if len(player_hands_copy) < len(player.hands):
-                        self.dealer.deal_card(*player.hands)
-                        player.show_hand(*player.hands)
+                        split_hands = player.hands[-2:]
+                        self.dealer.deal_card(*split_hands)
+                        for split_hand in split_hands:
+                            player.show_hand(split_hand)
                         player_hands_copy.extend(player.hands)
                     elif self.bust(hand):
                         player.lost(hand)
