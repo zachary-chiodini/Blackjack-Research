@@ -205,12 +205,12 @@ class Player:
         return None
 
     def split(self, hand: Hand) -> str:
-        if len(hand.cards) == 2:
+        if len(hand.cards) == 2 and self.chips >= hand.bet:
             card1, card2 = hand.cards
             if card1.rank == card2.rank:
                 self.hands.remove(hand)
-                split_bet = hand.bet // 2
-                self.hands.extend([Hand(split_bet, card1), Hand(split_bet, card2)])
+                self.hands.extend([Hand(hand.bet, card1), Hand(hand.bet, card2)])
+                self.chips -= hand.bet
                 self.your_turn = False
                 return 'y'
         print('You are not allowed to split.')
