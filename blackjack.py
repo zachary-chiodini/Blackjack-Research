@@ -367,7 +367,7 @@ class Table:
             return npany((21 >= hand.value) & (hand.value > house_max))
         if house_min <= 21:
             return npany((21 >= hand.value) & (hand.value > house_min))
-        return False
+        return True
 
     @staticmethod
     def blackjack(hand: Hand) -> bool:
