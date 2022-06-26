@@ -232,15 +232,17 @@ class Player:
         if len(hand.cards) == 2 and self.chips >= hand.bet:
             card1, card2 = hand.cards
             if card1.rank == card2.rank:
-                self.chips -= hand.bet
-                self.total_bet += hand.bet
-                self.hands.remove(hand)
-                self.hands.extend([Hand(hand.bet, card1), Hand(hand.bet, card2)])
-                self.your_turn = False
-                return 'y'
-        print('You are not allowed to split.')
-        sleep(SLEEP_INT)
-        return self.call(hand)
+                pass
+        card1, card2 = hand.cards
+        self.chips -= hand.bet
+        self.total_bet += hand.bet
+        self.hands.remove(hand)
+        self.hands.extend([Hand(hand.bet, card1), Hand(hand.bet, card2)])
+        self.your_turn = False
+        return 'y'
+        #print('You are not allowed to split.')
+        #sleep(SLEEP_INT)
+        #return self.call(hand)
 
     def surrender(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
@@ -427,12 +429,13 @@ class Table:
                     self.show_score(player, hand, 'won', blackjack=True)
                     self.dealer.discard(hand)
                 while player.your_turn:
+                    n_hands_before_call = len(player.hands)
                     self.dealer.call_on(player, hand)
-                    if len(player_hands_copy) < len(player.hands):
+                    if n_hands_before_call < len(player.hands):
                         split_hands = player.hands[-2:]
                         self.dealer.deal_card(*split_hands)
                         player.show_hand(*split_hands)
-                        player_hands_copy.extend(player.hands)
+                        player_hands_copy.extend(split_hands)
                     elif self.bust(hand):
                         player.lost(hand)
                         self.show_score(player, hand, 'lost')
