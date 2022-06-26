@@ -361,9 +361,28 @@ class Table:
         self.minimum_bet = minimum_bet
 
     def beat_house(self, hand: Hand) -> bool:
-        winning_val_in = vectorize(
-            lambda i: npany((self.dealer.hand.value < i) & (i <= 21)))
-        return npany(winning_val_in(hand.value))
+        if isinstance(self.dealer.hand.value, IntArray):
+            house1, house2 = self.dealer.hand.value.tolist()
+            if isinstance(hand.value, IntArray):
+                hand1, hand2 = hand.value.tolist()
+                if hand1 <= 21 and (hand1 > house1 or hand1 > house2):
+                    return True
+                if hand2 <= 21 and (hand2 > house1 or hand2 > house2):
+                    return True
+                return False
+            hand = hand.value
+            if hand <= 21 and (hand > house1 or hand > house2):
+                return True
+            return False
+        house = self.dealer.hand.value
+        if isinstance(hand.value, IntArray):
+            hand1, hand2 = hand.value.tolist()
+            if 21 >= hand1 > house:
+                return True
+            if 21 >= hand2 > house:
+                return True
+            return False
+        return hand.value > house
 
     @staticmethod
     def blackjack(hand: Hand) -> bool:
