@@ -419,6 +419,7 @@ class Table:
                     self.dealer.discard(hand)
             return self.play()
         for player in current_players:
+            player.insurance = 0
             player_hands_copy = player.hands.copy()
             for hand in player_hands_copy:
                 player.your_turn = True
