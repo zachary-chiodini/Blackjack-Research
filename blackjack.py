@@ -257,6 +257,7 @@ class Player:
         indent = len(f'Player {self.n} insured hand ')
         print(f'Player {self.n} insured hand {hand.show(indent=indent)} for {self.insurance} chips.')
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
+        self.insurance = 0
         sleep(SLEEP_INT)
         return None
 
