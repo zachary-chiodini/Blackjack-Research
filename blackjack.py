@@ -1,6 +1,6 @@
 from random import randint, uniform
 from time import sleep
-from typing import Text, List, Tuple, Union
+from typing import Dict, Text, List, Tuple, Union
 
 from nptyping import Int8, NDArray, Shape
 from numpy import any as npany, array, all as npall, max as npmax, min as npmin
@@ -42,6 +42,20 @@ class Hand:
         self._add_values(*args)
         return None
 
+    def beat(self, hand: 'Hand') -> bool:
+        enemy_min, enemy_max = npmin(hand.value), npmax(hand.value)
+        if enemy_max <= 21:
+            return npany((21 >= self.value) & (self.value > enemy_max))
+        if enemy_min <= 21:
+            return npany((21 >= self.value) & (self.value > enemy_min))
+        return True
+
+    def blackjack(self) -> bool:
+        return npany(self.value == Int8(21))
+
+    def bust(self) -> bool:
+        return npall(self.value > Int8(21))
+
     def show(self, indent: int = 10) -> str:
         top, bottom = '', ''
         for card in self.cards:
@@ -51,6 +65,9 @@ class Hand:
         top += '\n'
         bottom = (' ' * indent) + bottom
         return top + bottom
+
+    def tie_with(self, hand: 'Hand') -> bool:
+        return npany(self.value == hand.value)
 
     def _add_values(self, *args: Card) -> None:
         for card in args:
@@ -147,10 +164,10 @@ class Player:
         self.hands: List[Hand] = []
         self.chips = chips
         self.total_bet = 0
-        self.your_turn = False
         self.insurance = 0
         self.choices = {'h': self.hit, 's': self.stand, 'd': self.double,
                         'y': self.split, 'sur': self.surrender}
+        self._your_turn = False
 
     def ask_for_insurance(self) -> int:
         input_ = str(input(f'Player {self.n}; Chips: {self.chips}; Insurance? (y/n) '))
@@ -178,7 +195,7 @@ class Player:
                 self.chips -= hand.bet
                 self.total_bet += hand.bet
                 hand.bet += hand.bet
-                self.your_turn = False
+                self._your_turn = False
                 return 'd'
         print('You are not allowed to double.')
         sleep(SLEEP_INT)
@@ -189,12 +206,13 @@ class Player:
         return 'h'
 
     def stand(self, *args) -> str:
-        self.your_turn = False
+        self._your_turn = False
         return 's'
 
     def lost(self, hand: Hand) -> None:
         self.hands.remove(hand)
-        self.your_turn = False
+        self.show_score(hand, 'lost')
+        self._your_turn = False
         return None
 
     def place_bet(self, minimum_bet: int) -> bool:
@@ -213,13 +231,15 @@ class Player:
                 self.hands.append(Hand(bet))
                 self.total_bet += bet
                 self.chips -= bet
+                self._your_turn = True
                 return True
         return False
 
     def push(self, hand: Hand) -> None:
         self.chips += hand.bet
         self.hands.remove(hand)
-        self.your_turn = False
+        self.show_score(hand, 'tied')
+        self._your_turn = False
         return None
 
     def show_hand(self, *args: Hand) -> None:
@@ -228,16 +248,25 @@ class Player:
             sleep(SLEEP_INT)
         return None
 
+    def show_score(self, hand: Hand, result: str, blackjack: bool = False) -> None:
+        def if_result(s: str) -> int:
+            return int(result == s)
+        title = 'Winner' * if_result('won') + 'Loser' * if_result('lost') + 'Standoff' * if_result('tied')
+        multiplier = (0.5 * int(blackjack)) + 1
+        indent = len(f'{title}: ')
+        print(f"Player {self.n} {result}{' Blackjack' * blackjack}!\n"
+              f"{title}: {hand.show(indent=indent)}; Value: {hand.value}\n"
+              f"You {result} {int(((result == 'won') * multiplier * hand.bet) + hand.bet)} chips.")
+        sleep(SLEEP_INT)
+        return None
+
     def split(self, hand: Hand) -> str:
         if len(hand.cards) == 2 and self.chips >= hand.bet:
             card1, card2 = hand.cards
             if card1.rank == card2.rank:
-                card1, card2 = hand.cards
                 self.chips -= hand.bet
                 self.total_bet += hand.bet
-                self.hands.remove(hand)
-                self.hands.extend([Hand(hand.bet, card1), Hand(hand.bet, card2)])
-                self.your_turn = False
+                self._your_turn = False
                 return 'y'
         print('You are not allowed to split.')
         sleep(SLEEP_INT)
@@ -247,7 +276,7 @@ class Player:
         if len(hand.cards) == 2:
             self.chips += hand.bet // 2
             self.hands.remove(hand)
-            self.your_turn = False
+            self._your_turn = False
             return 'sur'
         print('You are not allowed to surrender.')
         sleep(SLEEP_INT)
@@ -255,23 +284,33 @@ class Player:
 
     def use_insurance(self, hand: Hand) -> None:
         self.chips += self.insurance + hand.bet
+        self.insurance = 0
         indent = len(f'Player {self.n} insured hand ')
         print(f'Player {self.n} insured hand {hand.show(indent=indent)} for {self.insurance} chips.')
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
-        self.insurance = 0
+        self._your_turn = False
         sleep(SLEEP_INT)
         return None
 
     def won(self, hand: Hand) -> None:
         self.chips += 2 * hand.bet
         self.hands.remove(hand)
+        self.show_score(hand, 'won')
+        self._your_turn = False
         return None
 
     def won_blackjack(self, hand: Hand) -> None:
         self.chips += int(hand.bet * 2.5)
         self.hands.remove(hand)
-        self.your_turn = False
+        self.show_score(hand, 'won', blackjack=True)
+        self._your_turn = False
         return None
+
+    def your_turn(self) -> bool:
+        if self._your_turn:
+            return True
+        self._your_turn = True
+        return False
 
 
 class Dealer:
@@ -280,8 +319,9 @@ class Dealer:
         self.hand = Hand(bet=0)
         self.shoe = shoe
         self.tray = tray
+        self.players_hands: Dict[int, List[Hand]] = {}
         self.choices = {'h': self.hit, 's': self.void, 'd': self.hit,
-                        'y': self.void, 'sur': self.surrender}
+                        'y': self.split, 'sur': self.surrender}
 
     def hand_below_seventeen(self) -> bool:
         val = self.hand.value
@@ -338,6 +378,16 @@ class Dealer:
         sleep(SLEEP_INT)
         return None
 
+    def split(self, player: Player, hand: Hand) -> None:
+        card1, card2 = hand.cards
+        player.hands.remove(hand)
+        split_hands = [Hand(hand.bet, card1), Hand(hand.bet, card2)]
+        player.hands.extend(split_hands)
+        self.deal_card(*split_hands)
+        player.show_hand(*split_hands)
+        self.players_hands[player.n].extend(split_hands)
+        return None
+
     def surrender(self, player: Player, hand: Hand) -> None:
         print(f'Player {player.n} surrendered hand.\n'
               f'You reclaim {hand.bet // 2} chips.')
@@ -362,23 +412,6 @@ class Table:
         self.players = [Player(i) for i in range(1, players + 1)]
         self.minimum_bet = minimum_bet
 
-    def beat_house(self, hand: Hand) -> bool:
-        house = self.dealer.hand.value
-        house_min, house_max = npmin(house), npmax(house)
-        if house_max <= 21:
-            return npany((21 >= hand.value) & (hand.value > house_max))
-        if house_min <= 21:
-            return npany((21 >= hand.value) & (hand.value > house_min))
-        return True
-
-    @staticmethod
-    def blackjack(hand: Hand) -> bool:
-        return npany(hand.value == Int8(21))
-
-    @staticmethod
-    def bust(hand: Hand) -> bool:
-        return npall(hand.value > Int8(21))
-
     def play(self) -> None:
         sleep(SLEEP_INT)
         self.dealer.discard(self.dealer.hand)
@@ -398,48 +431,37 @@ class Table:
         if face_up_card.ace:
             for player in current_players:
                 player.ask_for_insurance()
-        if self.blackjack(self.dealer.hand):
+        if self.dealer.hand.blackjack():
             self.dealer.face_hole_card()
             self.dealer.show_hand()
             for player in current_players:
                 for hand in player.hands.copy():
-                    if self.blackjack(hand):
+                    if hand.blackjack():
                         if player.insurance:
                             player.use_insurance(hand)
                         player.push(hand)
-                        self.show_score(player, hand, 'tied')
                     else:
                         if player.insurance:
                             player.use_insurance(hand)
                             player.hands.remove(hand)
                         else:
-                            player.lost(hand)
                             hand.bet += player.insurance
-                            self.show_score(player, hand, 'lost')
+                            player.lost(hand)
                     self.dealer.discard(hand)
             return self.play()
         for player in current_players:
             player.insurance = 0
-            player_hands_copy = player.hands.copy()
-            for hand in player_hands_copy:
-                player.your_turn = True
+            self.dealer.players_hands[player.n] = player.hands.copy()
+            dealers_list_ref = self.dealer.players_hands[player.n]
+            for hand in dealers_list_ref:
                 player.show_hand(hand)
-                if self.blackjack(hand):
+                if hand.blackjack():
                     player.won_blackjack(hand)
-                    self.show_score(player, hand, 'won', blackjack=True)
-                    self.dealer.discard(hand)
-                while player.your_turn:
-                    n_hands_before_call = len(player.hands)
+                while player.your_turn():
                     self.dealer.call_on(player, hand)
-                    if n_hands_before_call < len(player.hands):
-                        split_hands = player.hands[-2:]
-                        self.dealer.deal_card(*split_hands)
-                        player.show_hand(*split_hands)
-                        player_hands_copy.extend(split_hands)
-                    elif self.bust(hand):
+                    if hand.bust():
                         player.lost(hand)
-                        self.show_score(player, hand, 'lost')
-                        self.dealer.discard(hand)
+                self.dealer.discard(hand)
         self.dealer.face_hole_card()
         self.dealer.show_hand()
         if not any(player.hands for player in current_players):
@@ -447,42 +469,21 @@ class Table:
         while self.dealer.hand_below_seventeen():
             self.dealer.deal_card(self.dealer.hand)
             self.dealer.show_hand()
-        if self.bust(self.dealer.hand):
+        if self.dealer.hand.bust():
             for player in current_players:
                 for hand in player.hands.copy():
                     player.won(hand)
-                    self.show_score(player, hand, 'won')
                     self.dealer.discard(hand)
-            return self.play()
         for player in current_players:
             for hand in player.hands.copy():
-                if self.beat_house(hand):
+                if hand.beat(self.dealer.hand):
                     player.won(hand)
-                    self.show_score(player, hand, 'won')
-                elif self.tie_with_house(hand):
+                elif hand.tie_with(self.dealer.hand):
                     player.push(hand)
-                    self.show_score(player, hand, 'tied')
                 else:
                     player.lost(hand)
-                    self.show_score(player, hand, 'lost')
                 self.dealer.discard(hand)
         return self.play()
-
-    @staticmethod
-    def show_score(player: Player, hand: Hand, result: str, blackjack: bool = False) -> None:
-        def if_result(s: str) -> int:
-            return int(result == s)
-        title = 'Winner' * if_result('won') + 'Loser' * if_result('lost') + 'Standoff' * if_result('tied')
-        multiplier = (0.5 * int(blackjack)) + 1
-        indent = len(f'{title}: ')
-        print(f"Player {player.n} {result}{' Blackjack' * blackjack}!\n"
-              f"{title}: {hand.show(indent=indent)}; Value: {hand.value}\n"
-              f"You {result} {int(((result == 'won') * multiplier * hand.bet) + hand.bet)} chips.")
-        sleep(SLEEP_INT)
-        return None
-
-    def tie_with_house(self, hand: Hand) -> bool:
-        return npany(hand.value == self.dealer.hand.value)
 
 
 if __name__ == '__main__':
