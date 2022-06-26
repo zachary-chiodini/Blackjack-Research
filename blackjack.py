@@ -3,7 +3,7 @@ from time import sleep
 from typing import Text, List, Tuple, Union
 
 from nptyping import Int8, NDArray, Shape
-from numpy import any as npany, array, all as npall, vectorize
+from numpy import any as npany, array, all as npall, max as npmax, min as npmin
 
 
 SLEEP_INT = 1
@@ -361,28 +361,19 @@ class Table:
         self.minimum_bet = minimum_bet
 
     def beat_house(self, hand: Hand) -> bool:
-        if isinstance(self.dealer.hand.value, IntArray):
-            house1, house2 = self.dealer.hand.value.tolist()
-            if isinstance(hand.value, IntArray):
-                hand1, hand2 = hand.value.tolist()
-                if hand1 <= 21 and (hand1 > house1 or hand1 > house2):
-                    return True
-                if hand2 <= 21 and (hand2 > house1 or hand2 > house2):
-                    return True
-                return False
-            hand = hand.value
-            if hand <= 21 and (hand > house1 or hand > house2):
-                return True
-            return False
         house = self.dealer.hand.value
-        if isinstance(hand.value, IntArray):
-            hand1, hand2 = hand.value.tolist()
-            if 21 >= hand1 > house:
-                return True
-            if 21 >= hand2 > house:
-                return True
+        house_min, house_max = npmin(house), npmax(house)
+        hand_min, hand_max = npmin(hand.value), npmax(hand.value)
+        if house_max <= 21:
+            for val in [hand_min, hand_max]:
+                if 21 >= val > house_max:
+                    return True
             return False
-        return hand.value > house
+        if house_min <= 21:
+            for val in [hand_min, hand_max]:
+                if 21 >= val > house_min:
+                    return True
+        return False
 
     @staticmethod
     def blackjack(hand: Hand) -> bool:
