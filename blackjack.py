@@ -363,16 +363,10 @@ class Table:
     def beat_house(self, hand: Hand) -> bool:
         house = self.dealer.hand.value
         house_min, house_max = npmin(house), npmax(house)
-        hand_min, hand_max = npmin(hand.value), npmax(hand.value)
         if house_max <= 21:
-            for val in [hand_min, hand_max]:
-                if 21 >= val > house_max:
-                    return True
-            return False
+            return npany((21 >= hand.value) & (hand.value > house_max))
         if house_min <= 21:
-            for val in [hand_min, hand_max]:
-                if 21 >= val > house_min:
-                    return True
+            return npany((21 >= hand.value) & (hand.value > house_min))
         return False
 
     @staticmethod
