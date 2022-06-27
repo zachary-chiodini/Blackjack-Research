@@ -463,11 +463,12 @@ class Table:
                 player.show_hand(hand)
                 if hand.blackjack():
                     player.won_blackjack(hand)
+                    self.dealer.discard(hand)
                 while player.your_turn():
                     self.dealer.call_on(player, hand)
                     if hand.bust():
                         player.lost(hand)
-                self.dealer.discard(hand)
+                        self.dealer.discard(hand)
         self.dealer.face_hole_card()
         self.dealer.show_hand()
         if not any(player.hands for player in current_players):
