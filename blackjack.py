@@ -420,7 +420,7 @@ class Table:
         for _ in range(decks):
             deck.generate()
         deck.shuffle()
-        shoe, tray = Shoe(deck, penetration=penetration), Tray()
+        shoe, tray = Shoe(deck, penetration), Tray()
         self.dealer = Dealer(shoe, tray)
         self.players = [Player(i) for i in range(1, players + 1)]
         self.minimum_bet = minimum_bet
