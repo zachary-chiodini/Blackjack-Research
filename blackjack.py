@@ -195,6 +195,7 @@ class Player:
                 self.chips -= hand.bet
                 self.total_bet += hand.bet
                 hand.bet += hand.bet
+                self.insurance = 0
                 self._your_turn = False
                 return 'd'
         print('You are not allowed to double.')
@@ -206,12 +207,14 @@ class Player:
         return 'h'
 
     def stand(self, *args) -> str:
+        self.insurance = 0
         self._your_turn = False
         return 's'
 
     def lost(self, hand: Hand) -> None:
         self.hands.remove(hand)
         self.show_score(hand, 'lost')
+        self.insurance = 0
         self._your_turn = False
         return None
 
@@ -239,6 +242,7 @@ class Player:
         self.chips += hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'tied')
+        self.insurance = 0
         self._your_turn = False
         return None
 
@@ -266,6 +270,7 @@ class Player:
             if card1.rank == card2.rank:
                 self.chips -= hand.bet
                 self.total_bet += hand.bet
+                self.insurance = 0
                 self._your_turn = False
                 return 'y'
         print('You are not allowed to split.')
@@ -276,6 +281,7 @@ class Player:
         if len(hand.cards) == 2:
             self.chips += hand.bet // 2
             self.hands.remove(hand)
+            self.insurance = 0
             self._your_turn = False
             return 'sur'
         print('You are not allowed to surrender.')
@@ -288,6 +294,8 @@ class Player:
         indent = len(f'Player {self.n} insured hand ')
         print(f'Player {self.n} insured hand {hand.show(indent=indent)} for {self.insurance} chips.')
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
+        if hand in self.hands:
+            self.hands.remove(hand)
         self._your_turn = False
         sleep(SLEEP_INT)
         return None
@@ -296,6 +304,7 @@ class Player:
         self.chips += 2 * hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'won')
+        self.insurance = 0
         self._your_turn = False
         return None
 
@@ -303,6 +312,7 @@ class Player:
         self.chips += int(hand.bet * 2.5)
         self.hands.remove(hand)
         self.show_score(hand, 'won', blackjack=True)
+        self.insurance = 0
         self._your_turn = False
         return None
 
@@ -364,6 +374,9 @@ class Dealer:
     def face_hole_card(self) -> None:
         self.hand.cards[0].face_up = True
         return None
+
+    def face_up_card(self) -> Card:
+        return self.hand.cards[1]
 
     def hit(self, player: Player, hand: Hand) -> None:
         self.deal_card(hand)
@@ -427,30 +440,23 @@ class Table:
         for player in current_players:
             for hand in player.hands:
                 player.show_hand(hand)
-        face_up_card = self.dealer.hand.cards[1]
-        if face_up_card.ace:
+        if self.dealer.face_up_card().ace:
             for player in current_players:
                 player.ask_for_insurance()
         if self.dealer.hand.blackjack():
             self.dealer.face_hole_card()
             self.dealer.show_hand()
             for player in current_players:
-                for hand in player.hands.copy():
+                for hand in player.hands:
                     if hand.blackjack():
-                        if player.insurance:
-                            player.use_insurance(hand)
                         player.push(hand)
+                    if player.insurance:
+                        player.use_insurance()
                     else:
-                        if player.insurance:
-                            player.use_insurance(hand)
-                            player.hands.remove(hand)
-                        else:
-                            hand.bet += player.insurance
-                            player.lost(hand)
+                        player.lost(hand)
                     self.dealer.discard(hand)
             return self.play()
         for player in current_players:
-            player.insurance = 0
             self.dealer.players_hands[player.n] = player.hands.copy()
             dealers_list_ref = self.dealer.players_hands[player.n]
             for hand in dealers_list_ref:
