@@ -417,7 +417,7 @@ class Table:
 
     def __init__(self, players: int, decks: int, minimum_bet: int, penetration: float):
         deck = Deck()
-        for i in range(decks):
+        for _ in range(decks):
             deck.generate()
         deck.shuffle()
         shoe, tray = Shoe(deck, penetration=penetration), Tray()
