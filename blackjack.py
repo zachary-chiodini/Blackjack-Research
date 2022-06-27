@@ -169,7 +169,7 @@ class Player:
                         'y': self.split, 'sur': self.surrender}
         self._your_turn = False
 
-    def ask_for_insurance(self) -> int:
+    def ask_for_insurance(self) -> None:
         input_ = str(input(f'Player {self.n}; Chips: {self.chips}; Insurance? (y/n) '))
         if input_.lower().replace('es', '').strip() == 'y' or input_.strip() == '1':
             price = self.total_bet // 2
@@ -177,9 +177,9 @@ class Player:
                 self.chips -= price
                 self.total_bet += price
                 self.insurance = price
-                return price
+                return None
         self.insurance = 0
-        return 0
+        return None
 
     def call(self, hand: Hand) -> str:
         input_ = str(input(f'Chips: {self.chips}; Bet: {self.total_bet}; Your turn: '))
