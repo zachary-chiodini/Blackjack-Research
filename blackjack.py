@@ -56,6 +56,12 @@ class Hand:
     def bust(self) -> bool:
         return npall(self.value > Int8(21))
 
+    def pair(self) -> bool:
+        if len(self.cards) == 2:
+            card1, card2 = self.cards
+            return card1.rank == card2.rank
+        return False
+
     def show(self, indent: int = 10) -> str:
         top, bottom = '', ''
         for card in self.cards:
@@ -268,14 +274,12 @@ class Player:
         return None
 
     def split(self, hand: Hand) -> str:
-        if len(hand.cards) == 2 and self.chips >= hand.bet:
-            card1, card2 = hand.cards
-            if card1.rank == card2.rank:
-                self.chips -= hand.bet
-                self.total_bet += hand.bet
-                self.insurance = 0
-                self._your_turn = False
-                return 'y'
+        if self.chips >= hand.bet and hand.pair():
+            self.chips -= hand.bet
+            self.total_bet += hand.bet
+            self.insurance = 0
+            self._your_turn = False
+            return 'y'
         print('You are not allowed to split.')
         sleep(SLEEP_INT)
         return self.call(hand)
