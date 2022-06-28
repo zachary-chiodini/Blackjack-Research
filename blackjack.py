@@ -57,7 +57,7 @@ class Hand:
         return npall(self.value > Int8(21))
 
     def has_ace(self) -> bool:
-        return isinstance(self.value, IntArray)
+        return npany([card.ace for card in self.cards])
 
     def pair(self) -> bool:
         if len(self.cards) == 2:
