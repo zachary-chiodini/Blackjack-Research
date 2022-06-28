@@ -455,7 +455,7 @@ class Table:
                     if hand.blackjack():
                         player.push(hand)
                     if player.insurance:
-                        player.use_insurance()
+                        player.use_insurance(hand)
                     else:
                         player.lost(hand)
                     self.dealer.discard(hand)
