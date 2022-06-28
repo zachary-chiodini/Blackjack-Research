@@ -56,6 +56,9 @@ class Hand:
     def bust(self) -> bool:
         return npall(self.value > Int8(21))
 
+    def has_ace(self) -> bool:
+        return isinstance(self.value, IntArray)
+
     def pair(self) -> bool:
         if len(self.cards) == 2:
             card1, card2 = self.cards
