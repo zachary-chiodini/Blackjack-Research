@@ -161,6 +161,7 @@ class Player:
 
     def __init__(self, n: int, chips: int = 1000):
         self.n = n
+        self.name = f'Player {n}'
         self.hands: List[Hand] = []
         self.chips = chips
         self.total_bet = 0
@@ -172,7 +173,7 @@ class Player:
         self._your_turn = False
 
     def ask_for_insurance(self) -> None:
-        input_ = str(input(f'Player {self.n}; Chips: {self.chips}; Insurance? (y/n) '))
+        input_ = str(input(f'{self.name}; Chips: {self.chips}; Insurance? (y/n) '))
         if input_.lower().replace('es', '').strip() == 'y' or input_.strip() == '1':
             price = self.total_bet // 2
             if self.chips >= price:
@@ -221,7 +222,7 @@ class Player:
         return None
 
     def place_bet(self, minimum_bet: int) -> bool:
-        bet = input(f'Player {self.n}; Chips: {self.chips}; Place bet: ')
+        bet = input(f'{self.name}; Chips: {self.chips}; Place bet: ')
         if bet:
             try:
                 bet = abs(int(bet))
@@ -250,7 +251,7 @@ class Player:
 
     def show_hand(self, *args: Hand) -> None:
         for hand_and_value in [f'{hand.show()}; Value: {hand.value}' for hand in args]:
-            print(f"Player {self.n}: {hand_and_value}")
+            print(f'{self.name}: {hand_and_value}')
             sleep(SLEEP_INT)
         return None
 
@@ -260,7 +261,7 @@ class Player:
         title = 'Winner' * if_result('won') + 'Loser' * if_result('lost') + 'Standoff' * if_result('tied')
         multiplier = (0.5 * int(blackjack)) + 1
         indent = len(f'{title}: ')
-        print(f"Player {self.n} {result}{' Blackjack' * blackjack}!\n"
+        print(f"{self.name} {result}{' Blackjack' * blackjack}!\n"
               f"{title}: {hand.show(indent=indent)}; Value: {hand.value}\n"
               f"You {result} {int(((result == 'won') * multiplier * hand.bet) + hand.bet)} chips.")
         sleep(SLEEP_INT)
@@ -293,8 +294,8 @@ class Player:
     def use_insurance(self, hand: Hand) -> None:
         self.chips += self.insurance + hand.bet
         self.insurance = 0
-        indent = len(f'Player {self.n} insured hand ')
-        print(f'Player {self.n} insured hand {hand.show(indent=indent)} for {self.insurance} chips.')
+        indent = len(f'{self.name} insured hand ')
+        print(f'{self.name} insured hand {hand.show(indent=indent)} for {self.insurance} chips.')
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
         if hand in self.hands:
             self.hands.remove(hand)
@@ -407,7 +408,7 @@ class Dealer:
         return None
 
     def surrender(self, player: Player, hand: Hand) -> None:
-        print(f'Player {player.n} surrendered hand.\n'
+        print(f'{player.name} surrendered hand.\n'
               f'You reclaim {hand.bet // 2} chips.')
         self.discard(hand)
         sleep(SLEEP_INT)
