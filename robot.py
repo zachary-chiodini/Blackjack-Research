@@ -10,3 +10,6 @@ class BasicStrategy(Player):
 
     def call(self, hand: Hand) -> str:
         pass
+
+    def place_bet(self, minimum_bet: int) -> bool:
+        pass
