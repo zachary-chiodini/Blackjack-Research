@@ -131,13 +131,13 @@ class BasicStrategy(Player):
 
     def place_bet(self, minimum_bet: int) -> bool:
         if self.chips >= minimum_bet:
+            print(f'{self.name}; Chips: {self.chips}; Place bet: {minimum_bet}')
+            sleep(SLEEP_INT)
             self.total_bet = 0
             self.hands.append(Hand(minimum_bet))
             self.total_bet += minimum_bet
             self.chips -= minimum_bet
             self._your_turn = True
-            print(f'{self.name}; Chips: {self.chips}; Place bet: {minimum_bet}')
-            sleep(SLEEP_INT)
             return True
         return False
 
