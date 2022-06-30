@@ -65,7 +65,7 @@ class Hand:
             return card1.rank == card2.rank
         return False
 
-    def show(self, text_before_cards: str) -> str:
+    def show(self, text_before_cards: str = '') -> str:
         top, bottom = '', ''
         for card in self.cards:
             rank, suit = card.show()
