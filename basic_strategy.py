@@ -4,9 +4,9 @@ from blackjack import Card, Hand, npmax, npmin, Player, sleep, SLEEP_INT, Table
 class BasicStrategy(Player):
     decision_tree = {
         'pair': {
-            0: {
+            False: {
                 'ace': {
-                    0: {
+                    False: {
                         'total': {
                             21: {'upcard': {2: 's', 3: 's', 4: 's', 5: 's', 6: 's',
                                             7: 's', 8: 's', 9: 's', 10: 's', 11: 's'}},
@@ -44,7 +44,7 @@ class BasicStrategy(Player):
                                            7: 'h', 8: 'h', 9: 'h', 10: 'h', 11: 'h'}},
                         }
                     },
-                    1: {
+                    True: {
                         'total': {
                             21: {'upcard': {2: 's', 3: 's', 4: 's', 5: 's', 6: 's',
                                             7: 's', 8: 's', 9: 's', 10: 's', 11: 's'}},
@@ -68,9 +68,9 @@ class BasicStrategy(Player):
                     }
                 }
             },
-            1: {
+            True: {
                 'ace': {
-                    0: {
+                    False: {
                         'total': {
                             20: {'upcard': {2: 's', 3: 's', 4: 's', 5: 's', 6: 's',
                                             7: 's', 8: 's', 9: 's', 10: 's', 11: 's'}},
@@ -92,7 +92,7 @@ class BasicStrategy(Player):
                                            8: 'h', 9: 'h', 10: 'h', 11: 'h'}}
                         }
                     },
-                    1: {
+                    True: {
                         'total': {
                             12: {'upcard': {2: 'y', 3: 'y', 4: 'y', 5: 'y', 6: 'y',
                                             7: 'y', 8: 'y', 9: 'y', 10: 'y', 11: 'y'}}
@@ -128,12 +128,12 @@ class BasicStrategy(Player):
             total = max_
         if hand.has_ace():
             if len(hand.cards) > 2:
-                has_ace = 0  # Soft strategy is applicable before hitting.
+                has_ace = False  # Soft strategy is applicable before hitting.
             else:
-                has_ace = 1
+                has_ace = True
         else:
-            has_ace = 0
-        return self.decision_tree['pair'][int(hand.pair())]['ace'][has_ace]\
+            has_ace = False
+        return self.decision_tree['pair'][hand.pair()]['ace'][has_ace]\
             ['total'][int(total)]['upcard'][int(npmax(up_card.value))]
 
     def place_bet(self, minimum_bet: int) -> bool:
