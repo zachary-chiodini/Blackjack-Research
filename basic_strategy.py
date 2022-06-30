@@ -126,7 +126,14 @@ class BasicStrategy(Player):
             total = min_
         else:
             total = max_
-        return self.decision_tree['pair'][int(hand.pair())]['ace'][int(hand.has_ace())]\
+        if hand.has_ace():
+            if len(hand.cards) > 2:
+                has_ace = 0  # Soft strategy is applicable before hitting.
+            else:
+                has_ace = 1
+        else:
+            has_ace = 0
+        return self.decision_tree['pair'][int(hand.pair())]['ace'][has_ace]\
             ['total'][int(total)]['upcard'][int(npmax(up_card.value))]
 
     def place_bet(self, minimum_bet: int) -> bool:
