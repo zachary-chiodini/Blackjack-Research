@@ -65,14 +65,14 @@ class Hand:
             return card1.rank == card2.rank
         return False
 
-    def show(self, indent: int = 10) -> str:
+    def show(self, text_before_cards: str) -> str:
         top, bottom = '', ''
         for card in self.cards:
             rank, suit = card.show()
             top += f'|{rank} {suit}|'
             bottom += f'|{suit} {rank}|'
         top += '\n'
-        bottom = (' ' * indent) + bottom
+        bottom = (' ' * len(text_before_cards)) + bottom
         return top + bottom
 
     def tie_with(self, hand: 'Hand') -> bool:
@@ -259,7 +259,7 @@ class Player:
         return None
 
     def show_hand(self, *args: Hand) -> None:
-        for hand_and_value in [f'{hand.show()}; Value: {hand.value}' for hand in args]:
+        for hand_and_value in [f"{hand.show(f'{self.name}: ')}; Value: {hand.value}" for hand in args]:
             print(f'{self.name}: {hand_and_value}')
             sleep(SLEEP_INT)
         return None
@@ -269,9 +269,8 @@ class Player:
             return int(result == s)
         title = 'Winner' * if_result('won') + 'Loser' * if_result('lost') + 'Standoff' * if_result('tied')
         multiplier = (0.5 * int(blackjack)) + 1
-        indent = len(f'{title}: ')
         print(f"{self.name} {result}{' Blackjack' * blackjack}!\n"
-              f"{title}: {hand.show(indent=indent)}; Value: {hand.value}\n"
+              f"{title}: {hand.show(f'{title}: ')}; Value: {hand.value}\n"
               f"You {result} {int(((result == 'won') * multiplier * hand.bet) + hand.bet)} chips.")
         sleep(SLEEP_INT)
         return None
@@ -301,8 +300,7 @@ class Player:
     def use_insurance(self, hand: Hand) -> None:
         self.chips += self.insurance + hand.bet
         self.insurance = 0
-        indent = len(f'{self.name} insured hand ')
-        print(f'{self.name} insured hand {hand.show(indent=indent)} for {self.insurance} chips.')
+        print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
         if hand in self.hands:
             self.hands.remove(hand)
@@ -398,9 +396,9 @@ class Dealer:
 
     def show_hand(self, face_hole_card=True) -> None:
         if face_hole_card:
-            print(f'Dealer 0: {self.hand.show()}; Value: {self.hand.value}')
+            print(f"Dealer 0: {self.hand.show(f'Dealer 0: ')}; Value: {self.hand.value}")
         else:
-            print(f'Dealer 0: {self.hand.show()}; Value: {self.face_up_card().value}+')
+            print(f"Dealer 0: {self.hand.show(f'Dealer 0: ')}; Value: {self.face_up_card().value}+")
         sleep(SLEEP_INT)
         return None
 
