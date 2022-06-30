@@ -136,7 +136,7 @@ class BasicStrategy(Player):
             self.total_bet += minimum_bet
             self.chips -= minimum_bet
             self._your_turn = True
-            f'{self.name}; Chips: {self.chips}; Place bet: {minimum_bet}'
+            print(f'{self.name}; Chips: {self.chips}; Place bet: {minimum_bet}')
             sleep(SLEEP_INT)
             return True
         return False
