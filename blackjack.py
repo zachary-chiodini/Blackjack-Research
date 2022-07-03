@@ -237,17 +237,18 @@ class Player:
                 bet = abs(int(bet))
             except ValueError:
                 bet = 0
-            if bet < minimum_bet:
-                print(f'Minimum bet is {minimum_bet}.')
-                sleep(SLEEP_INT)
-                return self.place_bet(minimum_bet)
-            elif bet <= self.chips:
-                self.total_bet = 0
-                self.hands.append(Hand(bet))
-                self.total_bet += bet
-                self.chips -= bet
-                self._your_turn = True
-                return True
+            if bet:
+                if bet < minimum_bet:
+                    print(f'Minimum bet is {minimum_bet}.')
+                    sleep(SLEEP_INT)
+                    return self.place_bet(minimum_bet)
+                elif bet <= self.chips:
+                    self.total_bet = 0
+                    self.hands.append(Hand(bet))
+                    self.total_bet += bet
+                    self.chips -= bet
+                    self._your_turn = True
+                    return True
         return False
 
     def push(self, hand: Hand) -> None:
