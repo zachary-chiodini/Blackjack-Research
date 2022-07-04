@@ -19,7 +19,7 @@ class CardCounter(BasicStrategy):
     def place_bet(self, minimum_bet: int) -> bool:
         pass
 
-    def calc_true_count(self, round_to_nearest: int = 1) -> None:
+    def calc_true_count(self, round_to_nearest: float = 1.0) -> None:
         decks_remaining = len(self.dealer_ref.shoe.deck.cards) / 52
         self.true_count = round(decks_remaining / round_to_nearest) * round_to_nearest
         return None
