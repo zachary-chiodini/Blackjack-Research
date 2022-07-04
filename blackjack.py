@@ -175,7 +175,6 @@ class Player:
         self.chips = chips
         self.total_bet = 0
         self.insurance = 0
-        self.tray_ref: Union[Tray, None] = None   # This is for robot players to use.
         self.dealer_ref: Union[Dealer, None] = None   # This is for robot players to use.
         self.choices = {'h': self.hit, 's': self.stand, 'd': self.double,
                         'y': self.split, 'sur': self.surrender}
@@ -349,7 +348,6 @@ class Dealer:
 
     def call_on(self, player: Player, hand: Hand) -> None:
         player.dealer_ref = self  # This is for robot players to use.
-        player.tray_ref = self.tray  # This is for robot players to use.
         choice = player.call(hand)
         self.choices[choice](player, hand)
         return None
