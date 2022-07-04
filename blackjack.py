@@ -20,8 +20,13 @@ class Card:
         self.rank = rank
         self.suit = suit
         self.face_up = face_up
-        self.value: Union[IntArray, Int8] = self.rank_map[rank]
         self.ace = rank == 'A'
+        self._value: Union[IntArray, Int8] = self.rank_map[rank]
+
+    def get_value(self) -> Union[IntArray, Int8]:
+        if self.face_up:
+            return self._value
+        return Int8(0)
 
     def show(self) -> Tuple[str, str]:
         if self.face_up:
@@ -65,6 +70,11 @@ class Hand:
             return card1.rank == card2.rank
         return False
 
+    def recalc_value(self) -> None:
+        self.value = Int8(0)
+        self._add_values(*self.cards)
+        return None
+
     def show(self, text_before_cards: str = '') -> str:
         top, bottom = '', ''
         for card in self.cards:
@@ -83,7 +93,7 @@ class Hand:
             if card.ace and isinstance(self.value, IntArray):
                 self.value += Int8(1)
             else:
-                self.value += card.value
+                self.value += card.get_value()
         return None
 
 
@@ -385,6 +395,7 @@ class Dealer:
 
     def face_hole_card(self) -> None:
         self.hand.cards[0].face_up = True
+        self.hand.recalc_value()
         return None
 
     def face_up_card(self) -> Card:
@@ -395,11 +406,8 @@ class Dealer:
         player.show_hand(hand)
         return None
 
-    def show_hand(self, face_hole_card=True) -> None:
-        if face_hole_card:
-            print(f"Dealer 0: {self.hand.show(f'Dealer 0: ')}; Value: {self.hand.value}")
-        else:
-            print(f"Dealer 0: {self.hand.show(f'Dealer 0: ')}; Value: {self.face_up_card().value}+")
+    def show_hand(self) -> None:
+        print(f"Dealer 0: {self.hand.show(f'Dealer 0: ')}; Value: {self.hand.value}")
         sleep(SLEEP_INT)
         return None
 
@@ -448,7 +456,7 @@ class Table:
         if not current_players:
             return None
         self.dealer.deal_all(current_players)
-        self.dealer.show_hand(face_hole_card=False)
+        self.dealer.show_hand()
         for player in current_players:
             for hand in player.hands:
                 player.show_hand(hand)
