@@ -21,5 +21,6 @@ class CardCounter(BasicStrategy):
 
     def calc_true_count(self, round_to_nearest: float = 1.0) -> None:
         decks_remaining = len(self.dealer_ref.shoe.deck.cards) / 52
-        self.true_count = round(decks_remaining / round_to_nearest) * round_to_nearest
+        decks_remaining = round(decks_remaining / round_to_nearest) * round_to_nearest
+        self.true_count = int(round(self.running_count / decks_remaining))
         return None
