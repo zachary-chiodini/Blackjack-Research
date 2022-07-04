@@ -369,6 +369,7 @@ class Dealer:
             self.shoe.add(*self.tray.deck.cards)
             self.tray.empty()
             burner_card = self.shoe.get_card()
+            burner_card.face_up = True
             print(Hand(0, burner_card).show())
             self.tray.add(burner_card)
         for player in players:
