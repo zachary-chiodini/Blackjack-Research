@@ -21,14 +21,5 @@ class CardCounter(BasicStrategy):
         true_count = self.dealer_ref.get_true_count()
         return ''
 
-    def count_cards_on_table(self) -> None:
-        for card in self.dealer_ref.hand.cards:
-            self.running_count += self.count_map[npmax(card.get_value())]
-        for player in self.dealer_ref.players_hands.values():
-            for hand in player:
-                for card in hand.cards:
-                    self.running_count += self.count_map[npmax(card.get_value())]
-        return None
-
     def place_bet(self, minimum_bet: int) -> bool:
         pass
