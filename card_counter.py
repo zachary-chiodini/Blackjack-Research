@@ -1,8 +1,12 @@
 from basic_strategy import BasicStrategy
-from blackjack import Hand
+from blackjack import Card, Hand, npmax
 
 
 class CardCounter(BasicStrategy):
+    """
+    Uses Hi-Lo Card Counting System with Basic Strategy.
+    """
+    count_map = {0: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0, 10: -1, 11: -1}
 
     def __init__(self):
         super().__init__()
@@ -14,13 +18,17 @@ class CardCounter(BasicStrategy):
         pass
 
     def call(self, hand: Hand) -> str:
-        pass
+        true_count = self.dealer_ref.get_true_count()
+        return ''
+
+    def count_cards_on_table(self) -> None:
+        for card in self.dealer_ref.hand.cards:
+            self.running_count += self.count_map[npmax(card.get_value())]
+        for player in self.dealer_ref.players_hands.values():
+            for hand in player:
+                for card in hand.cards:
+                    self.running_count += self.count_map[npmax(card.get_value())]
+        return None
 
     def place_bet(self, minimum_bet: int) -> bool:
         pass
-
-    def calc_true_count(self, round_to_nearest: float = 1.0) -> None:
-        decks_remaining = len(self.dealer_ref.shoe.deck.cards) / 52
-        decks_remaining = round(decks_remaining / round_to_nearest) * round_to_nearest
-        self.true_count = int(round(self.running_count / decks_remaining))
-        return None

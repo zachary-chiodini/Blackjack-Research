@@ -343,14 +343,21 @@ class Player:
 
 
 class Dealer:
+    # Hi-Lo Card Counting System
+    count_map = {0: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0, 10: -1, 11: -1}
 
     def __init__(self, shoe: Shoe, tray: Tray):
         self.hand = Hand(bet=0)
         self.shoe = shoe
         self.tray = tray
+        self.running_count = 0
         self.players_hands: Dict[int, List[Hand]] = {}
         self.choices = {'h': self.hit, 's': self.void, 'd': self.hit,
                         'y': self.split, 'sur': self.surrender}
+
+    def add_to_running_count(self, card: Card) -> None:
+        self.running_count += self.count_map[npmax(card.get_value())]
+        return None
 
     def hand_below_seventeen(self) -> bool:
         val = self.hand.value
@@ -367,10 +374,12 @@ class Dealer:
             card = self.shoe.get_card()
             card.face_up = face_up
             hand.add(card)
+            self.add_to_running_count(card)
         return None
 
     def deal_all(self, players: List[Player]) -> None:
         if self.tray.card_count() >= self.shoe.cut_off:
+            self.running_count = 0
             self.tray.deck.shuffle()
             ratio = float(input('Deck cut ratio: '))
             self.tray.deck.cut(ratio)
@@ -379,6 +388,7 @@ class Dealer:
             burner_card = self.shoe.get_card()
             burner_card.face_up = True
             print(Hand(0, burner_card).show())
+            self.add_to_running_count(burner_card)
             self.tray.add(burner_card)
         for player in players:
             self.deal_card(player.hands[0])
@@ -394,12 +404,21 @@ class Dealer:
         return None
 
     def face_hole_card(self) -> None:
-        self.hand.cards[0].face_up = True
+        hole_card = self.hand.cards[0]
+        hole_card.face_up = True
         self.hand.recalc_value()
+        self.add_to_running_count(hole_card)
         return None
 
     def face_up_card(self) -> Card:
         return self.hand.cards[1]
+
+    def get_true_count(self) -> float:
+        round_to_nearest_deck = 1.0
+        true_count_decimals = 0
+        decks_remaining = len(self.shoe.deck.cards) / 52
+        decks_remaining = round(decks_remaining / round_to_nearest_deck) * round_to_nearest_deck
+        return round(self.running_count / decks_remaining, true_count_decimals)
 
     def hit(self, player: Player, hand: Hand) -> None:
         self.deal_card(hand)
