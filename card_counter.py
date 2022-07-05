@@ -3,10 +3,6 @@ from blackjack import Card, Hand, npmax
 
 
 class CardCounter(BasicStrategy):
-    """
-    Uses Hi-Lo Card Counting System with Basic Strategy.
-    """
-    count_map = {0: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0, 10: -1, 11: -1}
 
     def __init__(self):
         super().__init__()
