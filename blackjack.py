@@ -270,8 +270,8 @@ class Player:
         return None
 
     def show_hand(self, *args: Hand) -> None:
-        for hand_and_value in [f"{hand.show(f'{self.name}: ')}; Value: {hand.value}" for hand in args]:
-            print(f'{self.name}: {hand_and_value}')
+        for hand in args:
+            print(f"{self.name}: {hand.show(f'{self.name}: ')}; Value: {hand.value}")
             sleep(SLEEP_INT)
         return None
 
