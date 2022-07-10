@@ -44,7 +44,7 @@ class CardCounter(BasicStrategy):
         else:
             bet = int(minimum_bet + minimum_bet * true_count)
         if bet <= self.chips:
-            print(f'{self.name}; Chips: {self.chips}; Place bet: {minimum_bet}')
+            print(f'{self.name}; Chips: {self.chips}; Place bet: {bet}')
             sleep(SLEEP_INT)
             self.total_bet = 0
             self.hands.append(Hand(bet))
