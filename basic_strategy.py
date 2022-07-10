@@ -127,8 +127,8 @@ class BasicStrategy(Player):
         else:
             total = max_
         if hand.has_ace():
-            if len(hand.cards) > 2:
-                has_ace = False  # Soft strategy is applicable before hitting.
+            if npmin(hand.value) > 9:
+                has_ace = False  # Soft strategy is no longer applicable.
             else:
                 has_ace = True
         else:
