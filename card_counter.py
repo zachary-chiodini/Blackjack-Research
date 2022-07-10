@@ -34,6 +34,21 @@ class CardCounter(BasicStrategy):
                 choice = 's'
         return self.choices[choice](hand)
 
+    def place_bet(self, minimum_bet: int) -> bool:
+        if self.dealer_ref:
+            true_count = self.dealer_ref.get_true_count()
+        else:
+            true_count = 0.0
+        bet_spread = int(minimum_bet + minimum_bet * true_count)
+        if bet_spread <= self.chips:
+            self.total_bet = 0
+            self.hands.append(Hand(bet_spread))
+            self.total_bet += bet_spread
+            self.chips -= bet_spread
+            self._your_turn = True
+            return True
+        return False
+
     def show_hand(self, *args: Hand) -> None:
         if self.dealer_ref:
             true_count = f'; Count: {self.dealer_ref.get_true_count()}'
