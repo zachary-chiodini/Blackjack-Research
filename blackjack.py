@@ -411,9 +411,8 @@ class Dealer:
 
     def face_hole_card(self) -> None:
         hole_card = self.hand.cards[0]
-        hole_card.face_up = True
-        self.hand.recalc_value()
         self.add_to_running_count(hole_card)
+        self.show_hand()
         return None
 
     def face_up_card(self) -> Card:
@@ -433,6 +432,7 @@ class Dealer:
     def peek_at_hole_card(self) -> None:
         hole_card = self.hand.cards[0]
         hole_card.face_up = True
+        self.hand.recalc_value()
         return None
 
     def show_hand(self) -> None:
@@ -495,7 +495,6 @@ class Table:
         self.dealer.peek_at_hole_card()
         if self.dealer.hand.blackjack():
             self.dealer.face_hole_card()
-            self.dealer.show_hand()
             for player in current_players:
                 for hand in player.hands:
                     if hand.blackjack():
@@ -519,7 +518,6 @@ class Table:
                         player.lost(hand)
                         self.dealer.discard(hand)
         self.dealer.face_hole_card()
-        self.dealer.show_hand()
         if not any(player.hands for player in current_players):
             return self.play()
         while self.dealer.hand_below_seventeen():
