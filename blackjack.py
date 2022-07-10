@@ -21,12 +21,7 @@ class Card:
         self.suit = suit
         self.face_up = face_up
         self.ace = rank == 'A'
-        self._value: Union[IntArray, Int8] = self.rank_map[rank]
-
-    def get_value(self) -> Union[IntArray, Int8]:
-        if self.face_up:
-            return self._value
-        return Int8(0)
+        self.value: Union[IntArray, Int8] = self.rank_map[rank]
 
     def show(self) -> Tuple[str, str]:
         if self.face_up:
@@ -93,7 +88,7 @@ class Hand:
             if card.ace and isinstance(self.value, IntArray):
                 self.value += Int8(1)
             else:
-                self.value += card.get_value()
+                self.value += card.value
         return None
 
 
@@ -356,7 +351,7 @@ class Dealer:
                         'y': self.split, 'sur': self.surrender}
 
     def add_to_running_count(self, card: Card) -> None:
-        self.running_count += self.count_map[npmax(card.get_value())]
+        self.running_count += self.count_map[npmax(card.value)]
         return None
 
     def hand_below_seventeen(self) -> bool:
@@ -365,6 +360,7 @@ class Dealer:
 
     def call_on(self, player: Player, hand: Hand) -> None:
         player.dealer_ref = self  # This is for robot players to use.
+        player.show_hand(hand)
         choice = player.call(hand)
         self.choices[choice](player, hand)
         return None
@@ -422,7 +418,11 @@ class Dealer:
 
     def hit(self, player: Player, hand: Hand) -> None:
         self.deal_card(hand)
-        player.show_hand(hand)
+        return None
+
+    def peek_at_hole_card(self) -> None:
+        hole_card = self.hand.cards[0]
+        hole_card.face_up = True
         return None
 
     def show_hand(self) -> None:
@@ -482,6 +482,7 @@ class Table:
         if self.dealer.face_up_card().ace:
             for player in current_players:
                 player.ask_for_insurance()
+        self.dealer.peek_at_hole_card()
         if self.dealer.hand.blackjack():
             self.dealer.face_hole_card()
             self.dealer.show_hand()
@@ -499,7 +500,6 @@ class Table:
             self.dealer.players_hands[player.n] = player.hands.copy()
             dealers_list_ref = self.dealer.players_hands[player.n]
             for hand in dealers_list_ref:
-                player.show_hand(hand)
                 if hand.blackjack():
                     player.won_blackjack(hand)
                     self.dealer.discard(hand)

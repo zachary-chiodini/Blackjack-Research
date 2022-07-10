@@ -134,7 +134,18 @@ class BasicStrategy(Player):
         else:
             has_ace = False
         return self.decision_tree['pair'][hand.pair()]['ace'][has_ace]\
-            ['total'][total]['upcard'][npmax(up_card.get_value())]
+            ['total'][total]['upcard'][npmax(up_card.value)]
+
+    def double(self, hand: Hand) -> str:
+        if len(hand.cards) == 2:
+            if self.chips >= hand.bet:
+                self.chips -= hand.bet
+                self.total_bet += hand.bet
+                hand.bet += hand.bet
+                self.insurance = 0
+                self._your_turn = False
+                return 'd'
+        return 'h'
 
     def place_bet(self, minimum_bet: int) -> bool:
         if self.chips >= minimum_bet:
