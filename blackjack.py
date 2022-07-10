@@ -21,7 +21,12 @@ class Card:
         self.suit = suit
         self.face_up = face_up
         self.ace = rank == 'A'
-        self.value: Union[IntArray, Int8] = self.rank_map[rank]
+        self._value: Union[IntArray, Int8] = self.rank_map[rank]
+
+    def get_value(self) -> Union[IntArray, Int8]:
+        if self.face_up:
+            return self._value
+        return Int8(0)
 
     def show(self) -> Tuple[str, str]:
         if self.face_up:
@@ -88,7 +93,7 @@ class Hand:
             if card.ace and isinstance(self.value, IntArray):
                 self.value += Int8(1)
             else:
-                self.value += card.value
+                self.value += card.get_value()
         return None
 
 
@@ -351,7 +356,7 @@ class Dealer:
                         'y': self.split, 'sur': self.surrender}
 
     def add_to_running_count(self, card: Card) -> None:
-        self.running_count += self.count_map[npmax(card.value)]
+        self.running_count += self.count_map[npmax(card.get_value())]
         return None
 
     def hand_below_seventeen(self) -> bool:

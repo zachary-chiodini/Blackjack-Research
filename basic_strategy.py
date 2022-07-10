@@ -134,7 +134,7 @@ class BasicStrategy(Player):
         else:
             has_ace = False
         return self.decision_tree['pair'][hand.pair()]['ace'][has_ace]\
-            ['total'][total]['upcard'][npmax(up_card.value)]
+            ['total'][total]['upcard'][npmax(up_card.get_value())]
 
     def double(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
