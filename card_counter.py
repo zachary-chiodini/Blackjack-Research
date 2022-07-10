@@ -39,7 +39,7 @@ class CardCounter(BasicStrategy):
             true_count = self.dealer_ref.get_true_count()
         else:
             true_count = 0.0
-        if true_count <= 0:
+        if true_count <= 0.0:
             bet = minimum_bet
         else:
             bet = int(minimum_bet + minimum_bet * true_count)
