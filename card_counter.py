@@ -39,14 +39,17 @@ class CardCounter(BasicStrategy):
             true_count = self.dealer_ref.get_true_count()
         else:
             true_count = 0.0
-        bet_spread = int(minimum_bet + minimum_bet * true_count)
-        if bet_spread <= self.chips:
+        if true_count <= 0:
+            bet = minimum_bet
+        else:
+            bet = int(minimum_bet + minimum_bet * true_count)
+        if bet <= self.chips:
             print(f'{self.name}; Chips: {self.chips}; Place bet: {minimum_bet}')
             sleep(SLEEP_INT)
             self.total_bet = 0
-            self.hands.append(Hand(bet_spread))
-            self.total_bet += bet_spread
-            self.chips -= bet_spread
+            self.hands.append(Hand(bet))
+            self.total_bet += bet
+            self.chips -= bet
             self._your_turn = True
             return True
         return False
