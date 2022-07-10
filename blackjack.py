@@ -347,7 +347,7 @@ class Dealer:
         self.tray = tray
         self.running_count = 0
         self.players_hands: Dict[int, List[Hand]] = {}
-        self.choices = {'h': self.hit, 's': self.void, 'd': self.hit,
+        self.choices = {'h': self.hit, 's': self.void, 'd': self.double,
                         'y': self.split, 'sur': self.surrender}
 
     def add_to_running_count(self, card: Card) -> None:
@@ -397,6 +397,11 @@ class Dealer:
     def discard(self, *args: Hand) -> None:
         for hand in args:
             self.tray.add(*hand.cards)
+        return None
+
+    def double(self, player: Player, hand: Hand) -> None:
+        self.deal_card(hand)
+        player.show_hand(hand)
         return None
 
     def face_hole_card(self) -> None:
