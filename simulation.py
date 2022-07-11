@@ -8,6 +8,6 @@ if __name__ == '__main__':
     table.players = [card_counter]
     table.play(condition=lambda: card_counter.rounds < 1000)
     if card_counter.rounds < 1000:
-        print(f'Card Counter DIED with {card_counter.chips} chips.')
+        print(f'Card Counter DIED with {card_counter.chips} chips after {card_counter.rounds} rounds.')
     else:
-        print(f'Card Counter SURVIVED with {card_counter.chips} chips.')
+        print(f'Card Counter SURVIVED with {card_counter.chips} after {card_counter.rounds} chips.')
