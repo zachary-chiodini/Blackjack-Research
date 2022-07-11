@@ -1,6 +1,6 @@
 from random import randint, uniform
 from time import sleep
-from typing import Dict, Text, List, Tuple, Union
+from typing import Callable, Dict, Text, List, Optional, Tuple, Union
 
 from nptyping import Int8, NDArray, Shape
 from numpy import any as npany, array, all as npall, max as npmax, min as npmin
@@ -476,72 +476,73 @@ class Table:
         self.players = [Player(i) for i in range(1, players + 1)]
         self.minimum_bet = minimum_bet
 
-    def play(self) -> None:
-        sleep(SLEEP_INT)
-        self.dealer.discard(self.dealer.hand)
-        self.dealer.hand = Hand(bet=0)
-        current_players = []
-        for player in self.players:
-            if player.place_bet(self.minimum_bet):
-                current_players.append(player)
-        if not current_players:
-            return None
-        self.dealer.deal_all(current_players)
-        self.dealer.show_hand()
-        for player in current_players:
-            for hand in player.hands:
-                player.show_hand(hand)
-        if self.dealer.face_up_card().ace:
-            for player in current_players:
-                player.ask_for_insurance()
-        self.dealer.peek_at_hole_card()
-        if self.dealer.hand.blackjack():
-            self.dealer.face_hole_card()
+    def play(self, stop_condition: Callable[[], bool] = lambda: True) -> None:
+        while stop_condition:
+            sleep(SLEEP_INT)
+            self.dealer.discard(self.dealer.hand)
+            self.dealer.hand = Hand(bet=0)
+            current_players = []
+            for player in self.players:
+                if player.place_bet(self.minimum_bet):
+                    current_players.append(player)
+            if not current_players:
+                return None
+            self.dealer.deal_all(current_players)
+            self.dealer.show_hand()
             for player in current_players:
                 for hand in player.hands:
-                    if player.insurance:
-                        if hand.blackjack():
+                    player.show_hand(hand)
+            if self.dealer.face_up_card().ace:
+                for player in current_players:
+                    player.ask_for_insurance()
+            self.dealer.peek_at_hole_card()
+            if self.dealer.hand.blackjack():
+                self.dealer.face_hole_card()
+                for player in current_players:
+                    for hand in player.hands:
+                        if player.insurance:
+                            if hand.blackjack():
+                                player.push(hand)
+                            player.use_insurance(hand)
+                        elif hand.blackjack():
                             player.push(hand)
-                        player.use_insurance(hand)
-                    elif hand.blackjack():
+                        else:
+                            player.lost(hand)
+                        self.dealer.discard(hand)
+                continue
+            for player in current_players:
+                self.dealer.players_hands[player.n] = player.hands.copy()
+                dealers_list_ref = self.dealer.players_hands[player.n]
+                for hand in dealers_list_ref:
+                    if hand.blackjack():
+                        player.won_blackjack(hand)
+                        self.dealer.discard(hand)
+                    while player.your_turn():
+                        self.dealer.call_on(player, hand)
+                        if hand.bust():
+                            player.lost(hand)
+                            self.dealer.discard(hand)
+            self.dealer.face_hole_card()
+            if not any(player.hands for player in current_players):
+                continue
+            while self.dealer.hand_below_seventeen():
+                self.dealer.deal_card(self.dealer.hand)
+                self.dealer.show_hand()
+            if self.dealer.hand.bust():
+                for player in current_players:
+                    for hand in player.hands.copy():
+                        player.won(hand)
+                        self.dealer.discard(hand)
+            for player in current_players:
+                for hand in player.hands.copy():
+                    if hand.beat(self.dealer.hand):
+                        player.won(hand)
+                    elif hand.tie_with(self.dealer.hand):
                         player.push(hand)
                     else:
                         player.lost(hand)
                     self.dealer.discard(hand)
-            return self.play()
-        for player in current_players:
-            self.dealer.players_hands[player.n] = player.hands.copy()
-            dealers_list_ref = self.dealer.players_hands[player.n]
-            for hand in dealers_list_ref:
-                if hand.blackjack():
-                    player.won_blackjack(hand)
-                    self.dealer.discard(hand)
-                while player.your_turn():
-                    self.dealer.call_on(player, hand)
-                    if hand.bust():
-                        player.lost(hand)
-                        self.dealer.discard(hand)
-        self.dealer.face_hole_card()
-        if not any(player.hands for player in current_players):
-            return self.play()
-        while self.dealer.hand_below_seventeen():
-            self.dealer.deal_card(self.dealer.hand)
-            self.dealer.show_hand()
-        if self.dealer.hand.bust():
-            for player in current_players:
-                for hand in player.hands.copy():
-                    player.won(hand)
-                    self.dealer.discard(hand)
-        for player in current_players:
-            for hand in player.hands.copy():
-                if hand.beat(self.dealer.hand):
-                    player.won(hand)
-                elif hand.tie_with(self.dealer.hand):
-                    player.push(hand)
-                else:
-                    player.lost(hand)
-                self.dealer.discard(hand)
-        return self.play()
+        return None
 
 
 if __name__ == '__main__':
