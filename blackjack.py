@@ -6,7 +6,7 @@ from nptyping import Int8, NDArray, Shape
 from numpy import any as npany, array, all as npall, max as npmax, min as npmin
 
 
-SLEEP_INT = 1
+SLEEP_INT = 0
 
 IntArray = NDArray[Shape['*'], Int8]
 
