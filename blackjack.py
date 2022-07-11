@@ -496,10 +496,10 @@ class Table:
                 for hand in player.hands:
                     if hand.blackjack():
                         player.push(hand)
-                    if player.insurance:
-                        player.use_insurance(hand)
                     else:
                         player.lost(hand)
+                    if player.insurance:
+                        player.use_insurance(hand)
                     self.dealer.discard(hand)
             return self.play()
         for player in current_players:
