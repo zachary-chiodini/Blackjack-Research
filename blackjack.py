@@ -389,7 +389,8 @@ class Dealer:
         if self.tray.card_count() >= self.shoe.cut_off:
             self.running_count = 0
             self.tray.deck.shuffle()
-            ratio = float(input('Deck cut ratio: '))
+            #ratio = float(input('Deck cut ratio: '))
+            ratio = 0.5
             self.tray.deck.cut(ratio)
             self.shoe.add(*self.tray.deck.cards)
             self.tray.empty()
