@@ -310,11 +310,11 @@ class Player:
 
     def use_insurance(self, hand: Hand) -> None:
         self.chips += self.insurance + hand.bet
-        self.insurance = 0
         print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
         if hand in self.hands:
             self.hands.remove(hand)
+        self.insurance = 0
         self._your_turn = False
         sleep(SLEEP_INT)
         return None
