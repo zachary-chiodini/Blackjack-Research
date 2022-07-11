@@ -86,7 +86,12 @@ class Hand:
         return top + bottom
 
     def tie_with(self, hand: 'Hand') -> bool:
-        return npany(self.value == hand.value)
+        enemy_min, enemy_max = npmin(hand.value), npmax(hand.value)
+        if enemy_max <= 21:
+            return npany(self.value == enemy_min) | npany(self.value == enemy_max)
+        if enemy_min <= 21:
+            return npany(self.value == enemy_min)
+        return False
 
     def _add_values(self, *args: Card) -> None:
         for card in args:
