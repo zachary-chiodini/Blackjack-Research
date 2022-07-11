@@ -472,12 +472,15 @@ class Table:
             deck.generate()
         deck.shuffle()
         shoe, tray = Shoe(deck, penetration), Tray()
+        self.round = 0
         self.dealer = Dealer(shoe, tray)
         self.players = [Player(i) for i in range(1, players + 1)]
         self.minimum_bet = minimum_bet
 
     def play(self, stop_condition: Callable[[], bool] = lambda: True) -> None:
+        self.round = 0
         while stop_condition:
+            self.round += 1
             sleep(SLEEP_INT)
             self.dealer.discard(self.dealer.hand)
             self.dealer.hand = Hand(bet=0)
