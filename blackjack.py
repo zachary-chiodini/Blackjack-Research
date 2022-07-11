@@ -480,7 +480,6 @@ class Table:
     def play(self, stop_condition: Callable[[], bool] = lambda: True) -> None:
         self.round = 0
         while stop_condition:
-            self.round += 1
             sleep(SLEEP_INT)
             self.dealer.discard(self.dealer.hand)
             self.dealer.hand = Hand(bet=0)
@@ -490,6 +489,7 @@ class Table:
                     current_players.append(player)
             if not current_players:
                 return None
+            self.round += 1
             self.dealer.deal_all(current_players)
             self.dealer.show_hand()
             for player in current_players:
