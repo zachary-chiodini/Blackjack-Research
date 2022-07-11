@@ -477,9 +477,9 @@ class Table:
         self.players = [Player(i) for i in range(1, players + 1)]
         self.minimum_bet = minimum_bet
 
-    def play(self, stop_condition: Callable[[], bool] = lambda: True) -> None:
+    def play(self, stop_condition: Callable[[], bool] = lambda: False) -> None:
         self.round = 0
-        while stop_condition:
+        while not stop_condition:
             sleep(SLEEP_INT)
             self.dealer.discard(self.dealer.hand)
             self.dealer.hand = Hand(bet=0)
