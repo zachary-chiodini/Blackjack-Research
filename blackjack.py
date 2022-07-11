@@ -494,12 +494,14 @@ class Table:
             self.dealer.face_hole_card()
             for player in current_players:
                 for hand in player.hands:
-                    if hand.blackjack():
+                    if player.insurance:
+                        if hand.blackjack():
+                            player.push(hand)
+                        player.use_insurance(hand)
+                    elif hand.blackjack():
                         player.push(hand)
                     else:
                         player.lost(hand)
-                    if player.insurance:
-                        player.use_insurance(hand)
                     self.dealer.discard(hand)
             return self.play()
         for player in current_players:
