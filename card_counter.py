@@ -50,6 +50,7 @@ class CardCounter(BasicStrategy):
             self.hands.append(Hand(bet))
             self.total_bet += bet
             self.chips -= bet
+            self.rounds += 1
             self._your_turn = True
             return True
         return False

@@ -155,6 +155,7 @@ class BasicStrategy(Player):
             self.hands.append(Hand(minimum_bet))
             self.total_bet += minimum_bet
             self.chips -= minimum_bet
+            self.rounds += 1
             self._your_turn = True
             return True
         return False

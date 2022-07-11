@@ -1,6 +1,6 @@
 from random import randint, uniform
 from time import sleep
-from typing import Callable, Dict, Text, List, Optional, Tuple, Union
+from typing import Callable, Dict, Text, List, Tuple, Union
 
 from nptyping import Int8, NDArray, Shape
 from numpy import any as npany, array, all as npall, max as npmax, min as npmin
@@ -188,6 +188,7 @@ class Player:
         self.name = f'Player {n}'
         self.hands: List[Hand] = []
         self.chips = chips
+        self.rounds = 0
         self.total_bet = 0
         self.insurance = 0
         self.dealer_ref: Union[Dealer, None] = None   # This is for robot players to use.
@@ -262,6 +263,7 @@ class Player:
                 self.hands.append(Hand(bet))
                 self.total_bet += bet
                 self.chips -= bet
+                self.rounds += 1
                 self._your_turn = True
                 return True
         return False
@@ -472,13 +474,13 @@ class Table:
             deck.generate()
         deck.shuffle()
         shoe, tray = Shoe(deck, penetration), Tray()
-        self.round = 0
         self.dealer = Dealer(shoe, tray)
         self.players = [Player(i) for i in range(1, players + 1)]
         self.minimum_bet = minimum_bet
 
     def play(self, condition: Callable[[], bool] = lambda: True) -> None:
-        self.round = 0
+        for player in self.players:
+            player.rounds = 0
         while condition:
             sleep(SLEEP_INT)
             self.dealer.discard(self.dealer.hand)
@@ -489,7 +491,6 @@ class Table:
                     current_players.append(player)
             if not current_players:
                 return None
-            self.round += 1
             self.dealer.deal_all(current_players)
             self.dealer.show_hand()
             for player in current_players:
