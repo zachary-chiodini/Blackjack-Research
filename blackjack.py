@@ -482,7 +482,7 @@ class Table:
     def play(self, condition: Callable[[], bool] = lambda: True) -> None:
         for player in self.players:
             player.rounds = 0
-        while condition:
+        while condition():
             sleep(SLEEP_INT)
             self.dealer.discard(self.dealer.hand)
             self.dealer.hand = Hand(bet=0)
