@@ -425,11 +425,11 @@ class Dealer:
     def face_up_card(self) -> Card:
         return self.hand.cards[1]
 
-    def get_true_count(self) -> int:
+    def get_true_count(self) -> float:
         round_to_nearest_deck = 0.25
         decks_remaining = len(self.shoe.deck.cards) / 52
         decks_remaining = round(decks_remaining / round_to_nearest_deck) * round_to_nearest_deck
-        return round(self.running_count / decks_remaining)
+        return self.running_count / decks_remaining
 
     def hit(self, player: Player, hand: Hand) -> None:
         self.deal_card(hand)
