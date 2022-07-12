@@ -88,7 +88,7 @@ class Hand:
     def tie_with(self, hand: 'Hand') -> bool:
         enemy_min, enemy_max = npmin(hand.value), npmax(hand.value)
         if enemy_max <= 21:
-            return npany(self.value == enemy_min) | npany(self.value == enemy_max)
+            return npany(self.value == enemy_max)
         if enemy_min <= 21:
             return npany(self.value == enemy_min)
         return False
