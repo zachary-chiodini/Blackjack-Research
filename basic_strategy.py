@@ -160,6 +160,15 @@ class BasicStrategy(Player):
             return True
         return False
 
+    def split(self, hand: Hand) -> str:
+        if self.chips >= hand.bet and hand.pair():
+            self.chips -= hand.bet
+            self.total_bet += hand.bet
+            self.insurance = 0
+            self._your_turn = False
+            return 'y'
+        return 's'  # game is over.
+
 
 if __name__ == '__main__':
     table = Table(players=2, decks=6, minimum_bet=50, penetration=0.75)
