@@ -156,8 +156,8 @@ class MultilayerPerceptron:
         """
         A_ref.append(X)  # len(A) = len(Z) + 1
         for w, b in zip(self.network['weights'], self.network['biases']):
-            # weighted input to layer
+            # "Z" is the weighted input to layer "w, b."
             Z_ref.append(np.matmul(A_ref[-1], w) + b)
-            # output of layer
+            # "A" is the output of layer "w, b."
             A_ref.append(self.activation(Z_ref[-1]))
         return A_ref[-1]
