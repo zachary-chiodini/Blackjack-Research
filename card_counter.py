@@ -1,7 +1,7 @@
 from typing import Callable
 
 from basic_strategy import BasicStrategy
-from blackjack import Hand, Player, sleep, SLEEP_INT, Table
+from blackjack import Hand, Player, sleep, Table
 
 
 class CardCounter(BasicStrategy):
@@ -45,7 +45,7 @@ class CardCounter(BasicStrategy):
             bet = int(minimum_bet + minimum_bet * true_count)
         if bet <= self.chips:
             print(f'{self.name}; Chips: {self.chips}; Place bet: {bet}')
-            sleep(SLEEP_INT)
+            sleep(self.sleep_int)
             self.total_bet = 0
             self.hands.append(Hand(bet))
             self.total_bet += bet
@@ -62,7 +62,7 @@ class CardCounter(BasicStrategy):
             true_count = ''
         for hand in args:
             print(f"{self.name}: {hand.show(f'{self.name}: ')}; Value: {hand.value}{true_count}")
-            sleep(SLEEP_INT)
+            sleep(self.sleep_int)
         return None
 
     def _apply_deviations(self) -> None:

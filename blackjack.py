@@ -6,8 +6,6 @@ from nptyping import Int8, NDArray, Shape
 from numpy import any as npany, array, all as npall, max as npmax, min as npmin
 
 
-SLEEP_INT = 0
-
 IntArray = NDArray[Shape['*'], Int8]
 
 
@@ -194,6 +192,7 @@ class Player:
         self.dealer_ref: Union[Dealer, None] = None   # This is for robot players to use.
         self.choices = {'h': self.hit, 's': self.stand, 'd': self.double,
                         'y': self.split, 'sur': self.surrender}
+        self.sleep_int = 1
         self._your_turn = False
 
     def ask_for_insurance(self) -> None:
@@ -212,7 +211,7 @@ class Player:
         input_ = str(input(f'Chips: {self.chips}; Bet: {self.total_bet}; Your turn: '))
         if input_ not in self.choices:
             print(f'You must choose {self.choices.keys()}.')
-            sleep(SLEEP_INT)
+            sleep(self.sleep_int)
             return self.call(hand)
         return self.choices[input_](hand)
 
@@ -226,7 +225,7 @@ class Player:
                 self._your_turn = False
                 return 'd'
         print('You are not allowed to double.')
-        sleep(SLEEP_INT)
+        sleep(self.sleep_int)
         return self.call(hand)
 
     @staticmethod
@@ -248,7 +247,7 @@ class Player:
     def place_bet(self, minimum_bet: int) -> bool:
         def wrong_input_response() -> bool:
             print(f'Minimum bet is {minimum_bet} chips.')
-            sleep(SLEEP_INT)
+            sleep(self.sleep_int)
             return self.place_bet(minimum_bet)
         bet = input(f'{self.name}; Chips: {self.chips}; Place bet: ')
         if bet:
@@ -279,7 +278,7 @@ class Player:
     def show_hand(self, *args: Hand) -> None:
         for hand in args:
             print(f"{self.name}: {hand.show(f'{self.name}: ')}; Value: {hand.value}")
-            sleep(SLEEP_INT)
+            sleep(self.sleep_int)
         return None
 
     def show_score(self, hand: Hand, result: str, blackjack: bool = False) -> None:
@@ -290,7 +289,7 @@ class Player:
         print(f"{self.name} {result}{' Blackjack' * blackjack}!\n"
               f"{title}: {hand.show(f'{title}: ')}; Value: {hand.value}\n"
               f"You {result} {int(((result == 'won') * multiplier * hand.bet) + hand.bet)} chips.")
-        sleep(SLEEP_INT)
+        sleep(self.sleep_int)
         return None
 
     def split(self, hand: Hand) -> str:
@@ -301,7 +300,7 @@ class Player:
             self._your_turn = False
             return 'y'
         print('You are not allowed to split.')
-        sleep(SLEEP_INT)
+        sleep(self.sleep_int)
         return self.call(hand)
 
     def surrender(self, hand: Hand) -> str:
@@ -312,7 +311,7 @@ class Player:
             self._your_turn = False
             return 'sur'
         print('You are not allowed to surrender.')
-        sleep(SLEEP_INT)
+        sleep(self.sleep_int)
         return self.call(hand)
 
     def use_insurance(self, hand: Hand) -> None:
@@ -323,7 +322,7 @@ class Player:
             self.hands.remove(hand)
         self.insurance = 0
         self._your_turn = False
-        sleep(SLEEP_INT)
+        sleep(self.sleep_int)
         return None
 
     def won(self, hand: Hand) -> None:
@@ -361,6 +360,7 @@ class Dealer:
         self.players_hands: Dict[int, List[Hand]] = {}
         self.choices = {'h': self.hit, 's': self.void, 'd': self.double,
                         'y': self.split, 'sur': self.surrender}
+        self.sleep_int = 1
 
     def add_to_running_count(self, card: Card) -> None:
         self.running_count += self.count_map[npmax(card.get_value())]
@@ -442,7 +442,7 @@ class Dealer:
 
     def show_hand(self) -> None:
         print(f"Dealer 0: {self.hand.show(f'Dealer 0: ')}; Value: {self.hand.value}")
-        sleep(SLEEP_INT)
+        sleep(self.sleep_int)
         return None
 
     def split(self, player: Player, hand: Hand) -> None:
@@ -459,7 +459,7 @@ class Dealer:
         print(f'{player.name} surrendered hand.\n'
               f'You reclaim {hand.bet // 2} chips.')
         self.discard(hand)
-        sleep(SLEEP_INT)
+        sleep(self.sleep_int)
         return None
 
     @staticmethod
@@ -478,12 +478,15 @@ class Table:
         self.dealer = Dealer(shoe, tray)
         self.players = [Player(i) for i in range(1, players + 1)]
         self.minimum_bet = minimum_bet
+        self.sleep_int = 1
 
     def play(self, condition: Callable[[], bool] = lambda: True) -> None:
+        self.dealer.sleep_int = self.sleep_int
         for player in self.players:
             player.rounds = 0
+            player.sleep_int = self.sleep_int
         while condition():
-            sleep(SLEEP_INT)
+            sleep(self.sleep_int)
             self.dealer.discard(self.dealer.hand)
             self.dealer.hand = Hand(bet=0)
             current_players = []

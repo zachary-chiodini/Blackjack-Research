@@ -99,7 +99,7 @@ class MultilayerPerceptron:
             L = self.activation(np.matmul(L, w) + b)
         return L
 
-    def _initialize(self, X: Input_Matrix, Y: Target_Matrix) -> None:
+    def initialize(self, X: Input_Matrix, Y: Target_Matrix) -> None:
         number_of_inputs = X.shape[1]
         number_of_targets = Y.shape[1]
         self.network = {'weights': [], 'biases': []}
@@ -119,7 +119,7 @@ class MultilayerPerceptron:
         epoch = 1
         start = time()
         total_gradient = np.inf
-        self._initialize(X, Y)
+        self.initialize(X, Y)
         output_layer_index = len(self.network['weights']) - 1
         while np.sqrt(total_gradient) > convergence:
             total_gradient = 0

@@ -6,6 +6,7 @@ if __name__ == '__main__':
     card_counter = CardCounter()
     card_counter.chips = 1000
     table = Table(players=1, decks=6, minimum_bet=25, penetration=0.75)
+    table.sleep_int = 0
     table.players = [card_counter]
     n_games = 1000
     table.play(condition=lambda: card_counter.rounds < n_games)

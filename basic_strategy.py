@@ -1,4 +1,4 @@
-from blackjack import Card, Hand, npmax, npmin, Player, sleep, SLEEP_INT, Table
+from blackjack import Card, Hand, npmax, npmin, Player, sleep, Table
 
 
 class BasicStrategy(Player):
@@ -150,7 +150,7 @@ class BasicStrategy(Player):
     def place_bet(self, minimum_bet: int) -> bool:
         if self.chips >= minimum_bet:
             print(f'{self.name}; Chips: {self.chips}; Place bet: {minimum_bet}')
-            sleep(SLEEP_INT)
+            sleep(self.sleep_int)
             self.total_bet = 0
             self.hands.append(Hand(minimum_bet))
             self.total_bet += minimum_bet
