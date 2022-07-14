@@ -154,7 +154,7 @@ class MultilayerPerceptron:
         except it populates two containers, A and Z,
         which are used in the backpropagation method.
         """
-        A_ref.append(X)  # len( A ) = len( Z ) + 1
+        A_ref.append(X)  # len(A) = len(Z) + 1
         for w, b in zip(self.network['weights'], self.network['biases']):
             # weighted input to layer
             Z_ref.append(np.matmul(A_ref[-1], w) + b)
