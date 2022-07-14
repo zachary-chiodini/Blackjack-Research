@@ -1,5 +1,5 @@
 from time import time
-from typing import Any, Dict, List, Tuple, TypedDict
+from typing import Any, List, Tuple, TypedDict
 
 from nptyping import NDArray, Float64
 import numpy as np
@@ -7,18 +7,46 @@ import numpy as np
 
 np.seterr(over='raise')
 
+# Input Matrix
+# X = | x1,1 x1,2 ... x1,n |
+#     | x2,1 x2,2 ... x2,n |
+#     |  ..   ..  ...  ..  |
+#     | xm,1 xm,2 ... xm,n |
 Number_of_Examples = Any
 Number_of_Features = Any
 Input_Matrix = NDArray[(Number_of_Examples, Number_of_Features), Float64]
 
+# Target Matrix
+# Y = | y1,1 y1,2 ... y1,n |
+#     | y2,1 y2,2 ... y2,n |
+#     |  ..   ..  ...  ..  |
+#     | ym,1 ym,2 ... ym,n |
 Number_of_Targets = Any
 Target_Matrix = NDArray[(Number_of_Examples, Number_of_Targets), Float64]
+
+# Output Matrix
+# Y = | y1,1 y1,2 ... y1,n |
+#     | y2,1 y2,2 ... y2,n |
+#     |  ..   ..  ...  ..  |
+#     | ym,1 ym,2 ... ym,n |
 Output_Matrix = NDArray[(Number_of_Examples, Number_of_Targets), Float64]
 
+# Perceptron
+# Pk = | w1,k |
+#      | w2,k |
+#      |  ..  |
+#      | wj,k |
+# Bias
+# bk = | w0,k |
 Number_of_Inputs = Any
 Bias, Weight = Float64, Float64
 Perceptron = NDArray[(Number_of_Inputs, 1), Weight]
 
+# Layer
+# Weights
+# W = | P1, P2, ..., Pk |
+# Biases
+# Bk = | b1, b2, .., bk |
 Number_of_Perceptrons = Any
 Weights = NDArray[(Number_of_Inputs, Number_of_Perceptrons), Perceptron]
 Biases = NDArray[Number_of_Perceptrons, Bias]
@@ -103,7 +131,7 @@ class MultilayerPerceptron:
                 output = self._forward_propagation(batch_x, A, Z)
                 # This is the gradient with respect to the output layer "a."
                 grad_a = self.grad(output, batch_y)
-                total_gradient += np.linalg.norm(grad_a) ** 2
+                total_gradient += np.linalg.norm(grad_a)**2
                 # This is the gradient with respect to the weighted input "z" of the output layer.
                 grad_z = self.derivative(Z[-1]) * grad_a
                 for layer_index in range(output_layer_index, -1, -1):
