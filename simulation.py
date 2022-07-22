@@ -1,5 +1,5 @@
 from blackjack import Table
-from card_counter import CardCounter
+from robots.card_counter import CardCounter
 
 if __name__ == '__main__':
     # Let's see if the card counter dies.
