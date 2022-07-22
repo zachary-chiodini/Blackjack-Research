@@ -1,6 +1,6 @@
 from typing import Callable
 
-from basic_strategy import BasicStrategy
+from robots.basic_strategy import BasicStrategy
 from blackjack import Hand, Player, sleep, Table
 
 
