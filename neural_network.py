@@ -66,6 +66,7 @@ class MultilayerPerceptron:
 
     @staticmethod
     def activation(x: NDArray[Float64]) -> NDArray[Float64]:
+        """This is the logistic function with amplitude and steepness of one."""
         return 1.0 / (1.0 + np.exp(-x))
 
     def backpropagate(self, grad_z: NDArray[Float64], A: Dict, Z: Dict, layer_index: int) -> Tuple:
@@ -80,14 +81,17 @@ class MultilayerPerceptron:
 
     @staticmethod
     def cost(A: Output_Matrix, Y: Target_Matrix) -> Float64:
+        """This is the sum of squared residuals."""
         return np.square(A - Y).sum()
 
     @staticmethod
     def derivative(x: NDArray[Float64]) -> NDArray[Float64]:
+        """This is the first derivative of the logistic function with amplitude and steepness of one."""
         return np.exp(-x) / np.square(1.0 + np.exp(-x))
 
     @staticmethod
     def grad(A: Output_Matrix, Y: Target_Matrix) -> NDArray[Float64]:
+        """This is the gradient of the sum of squared residuals."""
         return 2 * (A - Y)
 
     def forward_propagation(self, L: Input_Matrix) -> Output_Matrix:
@@ -107,7 +111,7 @@ class MultilayerPerceptron:
             self.biases[current_layer] = random_array(number_of_perceptrons) - 0.5
             number_of_inputs = number_of_perceptrons
             current_layer += 1
-        # The weights and biases for the output layer.
+        # The weights and biases for the output layer are below.
         self.weights[current_layer] = random_array(number_of_inputs, number_of_targets) - 0.5
         self.biases[current_layer] = random_array(number_of_targets) - 0.5
         return None
