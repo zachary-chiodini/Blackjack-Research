@@ -162,7 +162,8 @@ class MultilayerPerceptron:
         which are used in the backpropagation method.
         """
         current_layer = 0
-        A_ref[current_layer] = X  # The input layer does not have a weighted input. Therefore, len(A) = len(Z) + 1.
+        # The input layer does not have a weighted input. Therefore, len(A) = len(Z) + 1.
+        A_ref[current_layer] = X
         current_layer += 1
         for w, b in zip(self.weights, self.biases):
             # "Z" is the weighted input to the current layer.
