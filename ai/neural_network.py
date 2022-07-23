@@ -2,7 +2,7 @@ from numbers import Real
 from time import time
 from typing import Any, Callable, Dict, List, Tuple
 
-from nptyping import NDArray, Float64, Int8
+from nptyping import NDArray, Float64
 import numpy as np
 
 
@@ -67,6 +67,7 @@ class NeuralNetwork:
         self.weights: Network_Weights = {}
         self.biases: Network_Biases = {}
         self.score = 0.0
+        self.initiated = False
         self.instantiated = True
         self._perceptrons_per_hidden_layer = perceptrons_per_hidden_layer
 
@@ -131,6 +132,7 @@ class MultilayerPerceptron(NeuralNetwork):
         # The weights and biases for the output layer are below.
         self.weights[current_layer] = random_array(number_of_inputs, number_of_targets) - 0.5
         self.biases[current_layer] = random_array(number_of_targets) - 0.5
+        self.initiated = True
         return None
 
     def train(self, X: Input_Matrix, Y: Target_Matrix, batch_size=10, convergence=0.0,

@@ -1,8 +1,7 @@
 from blackjack import Table
-from robots.card_counter import CardCounter
+from blackjack_robots.card_counter import CardCounter
 
 if __name__ == '__main__':
-    # Let's see if the card counter dies.
     card_counter = CardCounter()
     card_counter.chips = 1000
     table = Table(players=1, decks=6, minimum_bet=25, penetration=0.75)

@@ -1,6 +1,6 @@
 from typing import Callable
 
-from robots.basic_strategy import BasicStrategy
+from blackjack_robots.basic_strategy import BasicStrategy
 from blackjack import Hand, Player, sleep, Table
 
 
@@ -47,7 +47,7 @@ class CardCounter(BasicStrategy):
             print(f'{self.name}; Chips: {self.chips}; Place bet: {bet}')
             sleep(self.sleep_int)
             self.total_bet = 0
-            self.hands.append(Hand(bet))
+            self.hands.append(Hand(bet=bet))
             self.total_bet += bet
             self.chips -= bet
             self.rounds += 1

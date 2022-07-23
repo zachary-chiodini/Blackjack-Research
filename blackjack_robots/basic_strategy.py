@@ -152,7 +152,7 @@ class BasicStrategy(Player):
             print(f'{self.name}; Chips: {self.chips}; Place bet: {minimum_bet}')
             sleep(self.sleep_int)
             self.total_bet = 0
-            self.hands.append(Hand(minimum_bet))
+            self.hands.append(Hand(bet=minimum_bet))
             self.total_bet += minimum_bet
             self.chips -= minimum_bet
             self.rounds += 1
