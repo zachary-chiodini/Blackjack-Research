@@ -119,8 +119,8 @@ class MultilayerPerceptron:
         self.biases[current_layer] = random_array(number_of_targets) - 0.5
         return None
 
-    def train(self, X: Input_Matrix, Y: Target_Matrix, learning_rate=1.0,
-              convergence=0.0, batch_size=10, max_epoch=10, max_time=60) -> None:
+    def train(self, X: Input_Matrix, Y: Target_Matrix, batch_size=10, convergence=0.0,
+              learning_rate=1.0, max_epoch=10, max_time_seconds=60) -> None:
         """This uses the Stochastic Gradient Descent training algorithm."""
         epoch = 1
         start = time()
@@ -148,7 +148,7 @@ class MultilayerPerceptron:
                     self.biases[current_layer] -= learning_rate * grad_b / len(batch_x)
                 # This is where backpropagation ends.
             epoch += 1
-            if time() - start > max_time:
+            if time() - start > max_time_seconds:
                 print('Maximum runtime encountered.')
                 break
             if epoch > max_epoch:
@@ -156,6 +156,7 @@ class MultilayerPerceptron:
                 break
             if np.sqrt(total_gradient) <= convergence:
                 print('Convergence achieved.')
+                break
         final_output = self.forward_propagation(X)
         self.score = self.cost(final_output, Y)
         return None
