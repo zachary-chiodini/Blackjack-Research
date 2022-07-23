@@ -69,15 +69,18 @@ class MultilayerPerceptron:
         """This is the logistic function with amplitude and steepness of one."""
         return 1.0 / (1.0 + np.exp(-x))
 
-    def backpropagate(self, grad_z: NDArray[Float64], A: Dict, Z: Dict, layer_index: int) -> Tuple:
+    def backpropagate(self, grad_z: NDArray[Float64], A: Dict, Z: Dict, current_layer: int) -> Tuple:
         # This is the gradient with respect to the weights "w" of the layer.
-        grad_w = np.matmul(A[layer_index].T, grad_z)  # len( A ) = len( Z ) + 1
+        grad_w = np.matmul(A[current_layer].T, grad_z)  # len( A ) = len( Z ) + 1
         # This is the gradient with respect to the biases "b" of the layer.
         grad_b = grad_z.sum(axis=0)
-        if layer_index > 0:  # There is no weighted input for the input or zeroth layer.
+        if current_layer > 0:  # There is no weighted input for the input or zeroth layer.
             # This is the gradient with respect to the weighted input "z" of the layer.
-            grad_z = self.derivative(Z[layer_index]) * np.matmul(grad_z, self.weights[layer_index].T)
+            grad_z = self.derivative(Z[current_layer]) * np.matmul(grad_z, self.weights[current_layer].T)
         return grad_z, grad_w, grad_b
+
+    def backpropagation(self) -> None:
+        return None
 
     @staticmethod
     def cost(A: Output_Matrix, Y: Target_Matrix) -> Float64:
@@ -131,6 +134,7 @@ class MultilayerPerceptron:
                                         np.array_split(Y, len(Y) // batch_size)):
                 A, Z = {}, {}
                 batch_output = self._forward_propagation(batch_x, A, Z)
+                # This is where backpropagation begins.
                 # This is the gradient with respect to the output layer "a".
                 grad_a = self.grad(batch_output, batch_y)
                 total_gradient += np.linalg.norm(grad_a)**2
@@ -142,6 +146,7 @@ class MultilayerPerceptron:
                     grad_z, grad_w, grad_b = self.backpropagate(grad_z, A, Z, current_layer)
                     self.weights[current_layer] -= learning_rate * grad_w / len(batch_x)
                     self.biases[current_layer] -= learning_rate * grad_b / len(batch_x)
+                # This is where backpropagation ends.
             epoch += 1
             if time() - start > max_time:
                 print('Maximum runtime encountered.')
