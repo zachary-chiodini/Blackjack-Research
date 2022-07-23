@@ -194,38 +194,3 @@ class MultilayerPerceptron(NeuralNetwork):
             A_ref[current_layer] = self.activation(Z_ref[current_layer])
             current_layer += 1
         return A_ref[current_layer - 1]
-
-
-State_Array = NDArray[Number_of_Features, Float64]
-
-
-class DeepQNetwork:
-
-    def __init__(self, neural_network: NeuralNetwork):
-        if not neural_network.instantiated:
-            raise ValueError('The argument "neural_network" must be an instantiated "NeuralNetwork" class object.')
-        self.policy = neural_network
-
-    def action_indices_of(self, state_matrix: Input_Matrix) -> NDArray[int]:
-        prob_actions: Output_Matrix = self.policy.forward_propagation(state_matrix)
-        return np.argmax(prob_actions, axis=1)
-
-    def learn(self, number_of_features: int, number_of_actions: int,
-              environment_call: Callable[[], State_Array],
-              environment_resp: Callable[[int], Real],
-              session_condition: Callable[[], bool],
-              number_of_sessions: int = 100) -> None:
-        self.policy.initialize(number_of_features, number_of_actions)
-        for _ in range(number_of_sessions):
-            state = environment_call()
-            state_matrix = np.array([state])
-            action_matrix = self.action_indices_of(state_matrix)
-            reward = environment_resp(action_matrix.item())
-            reward_matrix = np.array([reward])
-            while session_condition():
-                state = np.array([environment_call()])
-                state_matrix = np.vstack([state_matrix, state])
-                action_index = self.action_indices_of(state)
-                action_matrix = np.vstack([action_matrix, action_index])
-                reward = np.array([environment_resp(action_index.item())])
-                reward_matrix = np.vstack([reward_matrix, reward])
