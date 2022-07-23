@@ -130,13 +130,15 @@ class MultilayerPerceptron:
             for batch_x, batch_y in zip(np.array_split(X, len(X) // batch_size),
                                         np.array_split(Y, len(Y) // batch_size)):
                 A, Z = {}, {}
-                output = self._forward_propagation(batch_x, A, Z)
+                batch_output = self._forward_propagation(batch_x, A, Z)
                 # This is the gradient with respect to the output layer "a".
-                grad_a = self.grad(output, batch_y)
+                grad_a = self.grad(batch_output, batch_y)
                 total_gradient += np.linalg.norm(grad_a)**2
                 # This is the gradient with respect to the weighted input "z" of the output layer.
                 grad_z = self.derivative(Z[output_layer]) * grad_a
                 for current_layer in range(output_layer, -1, -1):
+                    # These are the gradients with respect to the weighted input "z",
+                    # weights "w" and biases "b" of the current layer.
                     grad_z, grad_w, grad_b = self.backpropagate(grad_z, A, Z, current_layer)
                     self.weights[current_layer] -= learning_rate * grad_w / len(batch_x)
                     self.biases[current_layer] -= learning_rate * grad_b / len(batch_x)
@@ -149,7 +151,8 @@ class MultilayerPerceptron:
                 break
             if np.sqrt(total_gradient) <= convergence:
                 print('Convergence achieved.')
-        self.score = self.cost(self.forward_propagation(X), Y)
+        final_output = self.forward_propagation(X)
+        self.score = self.cost(final_output, Y)
         return None
 
     def _forward_propagation(self, X: Input_Matrix, A_ref: Dict, Z_ref: Dict) -> Output_Matrix:
