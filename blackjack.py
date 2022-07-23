@@ -34,7 +34,7 @@ class Card:
 
 class Hand:
 
-    def __init__(self, bet: int, *args: Card):
+    def __init__(self, *args: Card, bet: int = 0):
         self.cards: List[Card] = list(args)
         self.value: Union[IntArray, Int8] = Int8(0)
         self._add_values(*args)
@@ -259,7 +259,7 @@ class Player:
                 return wrong_input_response()
             if bet <= self.chips:
                 self.total_bet = 0
-                self.hands.append(Hand(bet))
+                self.hands.append(Hand(bet=bet))
                 self.total_bet += bet
                 self.chips -= bet
                 self.rounds += 1
@@ -353,7 +353,7 @@ class Dealer:
     count_map = {0: 0, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 0, 8: 0, 9: 0, 10: -1, 11: -1}
 
     def __init__(self, shoe: Shoe, tray: Tray):
-        self.hand = Hand(bet=0)
+        self.hand = Hand()
         self.shoe = shoe
         self.tray = tray
         self.running_count = 0
@@ -396,7 +396,7 @@ class Dealer:
             self.tray.empty()
             burner_card = self.shoe.get_card()
             burner_card.face_up = True
-            print(Hand(0, burner_card).show())
+            print(Hand(burner_card).show())
             self.add_to_running_count(burner_card)
             self.tray.add(burner_card)
         for player in players:
@@ -448,7 +448,7 @@ class Dealer:
     def split(self, player: Player, hand: Hand) -> None:
         card1, card2 = hand.cards
         player.hands.remove(hand)
-        split_hands = [Hand(hand.bet, card1), Hand(hand.bet, card2)]
+        split_hands = [Hand(card1, hand.bet), Hand(card2, hand.bet)]
         player.hands.extend(split_hands)
         self.deal_card(*split_hands)
         player.show_hand(*split_hands)
@@ -488,7 +488,7 @@ class Table:
         while condition():
             sleep(self.sleep_int)
             self.dealer.discard(self.dealer.hand)
-            self.dealer.hand = Hand(bet=0)
+            self.dealer.hand = Hand()
             current_players = []
             for player in self.players:
                 if player.place_bet(self.minimum_bet):
