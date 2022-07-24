@@ -1,7 +1,8 @@
+from numbers import Real
 from time import time
 from typing import Any, Dict, List, Tuple
 
-from nptyping import NDArray, Float64
+from numpy.typing import NDArray
 import numpy as np
 
 
@@ -12,46 +13,47 @@ np.seterr(over='raise')
 #     | x2,1 x2,2 ... x2,n |
 #     |  ..   ..  ...  ..  |
 #     | xm,1 xm,2 ... xm,n |
-# m = number of examples in the data set
-# n = number of features, input nodes, or parameters in the model
-Number_of_Examples = Any
-Number_of_Features = Any
-Input_Matrix = NDArray[(Number_of_Examples, Number_of_Features), Float64]
+# m: number of examples
+# n: number of features
+Input_Matrix = NDArray[Real]
 
 # Target Matrix
-# Y = | y1,1 y1,2 ... y1,n |
-#     | y2,1 y2,2 ... y2,n |
+# Y = | y1,1 y1,2 ... y1,k |
+#     | y2,1 y2,2 ... y2,k |
 #     |  ..   ..  ...  ..  |
-#     | ym,1 ym,2 ... ym,n |
-Number_of_Targets = Any
-Target_Matrix = NDArray[(Number_of_Examples, Number_of_Targets), Float64]
+#     | ym,1 ym,2 ... ym,k |
+# m: number of examples
+# k: number of variables (with true values)
+Target_Matrix = NDArray[Real]
 
 # Output Matrix
-# Y = | y1,1 y1,2 ... y1,n |
-#     | y2,1 y2,2 ... y2,n |
+# Y = | y1,1 y1,2 ... y1,k |
+#     | y2,1 y2,2 ... y2,k |
 #     |  ..   ..  ...  ..  |
-#     | ym,1 ym,2 ... ym,n |
-Output_Matrix = NDArray[(Number_of_Examples, Number_of_Targets), Float64]
+#     | ym,1 ym,2 ... ym,k |
+# m: number of examples
+# k: number of variables (with computed values)
+Output_Matrix = NDArray[Real]
 
 # Perceptron
-# Pk = | w1,k |
-#      | w2,k |
-#      |  ..  |
-#      | wj,k |
+# Pk' = | w1,k' |
+#       | w2,k' |
+#       |  ..  |
+#       | wj,k' |
 # Bias
-# bk = | w0,k |
-Number_of_Inputs = Any
-Bias, Weight = Float64, Float64
-Perceptron = NDArray[(Number_of_Inputs, 1), Weight]
+# bk' = | w0,k' |
+# k': number of the perceptron
+# j: number of inputs to node k'
+Bias, Weight = Real, Real
+Perceptron = NDArray[Weight]
 
 # Layer
 # Weights
-# W = | P1, P2, ..., Pk |
+# W = | P1, P2, ..., Pk' |
 # Biases
-# Bk = | b1, b2, .., bk |
-Number_of_Perceptrons = Any
-Weights = NDArray[(Number_of_Inputs, Number_of_Perceptrons), Perceptron]
-Biases = NDArray[Number_of_Perceptrons, Bias]
+# Bk = | b1, b2, .., bk' |
+Weights = NDArray[Weight]
+Biases = NDArray[Bias]
 
 Layer_Number = int
 Network_Weights = Dict[Layer_Number, Weights]
@@ -71,17 +73,17 @@ class NeuralNetwork:
         self._perceptrons_per_hidden_layer = perceptrons_per_hidden_layer
 
     @staticmethod
-    def activation(x: NDArray[Float64]) -> NDArray[Float64]:
+    def activation(x: NDArray[Real]) -> NDArray[Real]:
         """This is the logistic function with amplitude and steepness of one."""
         return 1.0 / (1.0 + np.exp(-x))
 
     @staticmethod
-    def cost(A: Output_Matrix, Y: Target_Matrix) -> Float64:
+    def cost(A: Output_Matrix, Y: Target_Matrix) -> Real:
         """This is the sum of squared residuals."""
         return np.square(A - Y).sum()
 
     @staticmethod
-    def derivative(x: NDArray[Float64]) -> NDArray[Float64]:
+    def derivative(x: NDArray[Real]) -> NDArray[Real]:
         """This is the first derivative of the logistic function with amplitude and steepness of one."""
         return np.exp(-x) / np.square(1.0 + np.exp(-x))
 
@@ -89,7 +91,7 @@ class NeuralNetwork:
         raise NotImplementedError('The method "forward_propagation" is not implemented.')
 
     @staticmethod
-    def grad(A: Output_Matrix, Y: Target_Matrix) -> NDArray[Float64]:
+    def grad(A: Output_Matrix, Y: Target_Matrix) -> NDArray[Real]:
         """This is the gradient of the sum of squared residuals with respect to the output of the output layer."""
         return 2 * (A - Y)
 
@@ -102,7 +104,7 @@ class MultilayerPerceptron(NeuralNetwork):
     def __init__(self, perceptrons_per_hidden_layer: List[int] = []):
         super().__init__(perceptrons_per_hidden_layer)
 
-    def backpropagate(self, grad_z: NDArray[Float64], A: Dict, Z: Dict, current_layer: int) -> Tuple:
+    def backpropagate(self, grad_z: NDArray[Real], A: Dict, Z: Dict, current_layer: int) -> Tuple:
         # This is the gradient with respect to the weights "w" of the layer.
         grad_w = np.matmul(A[current_layer].T, grad_z)  # len( A ) = len( Z ) + 1
         # This is the gradient with respect to the biases "b" of the layer.
@@ -113,7 +115,7 @@ class MultilayerPerceptron(NeuralNetwork):
         return grad_z, grad_w, grad_b
 
     def forward_propagation(self, L: Input_Matrix) -> Output_Matrix:
-        for w, b in zip(self.weights, self.biases):
+        for w, b in zip(self.weights.values(), self.biases.values()):
             L = self.activation(np.matmul(L, w) + b)
         return L
 
