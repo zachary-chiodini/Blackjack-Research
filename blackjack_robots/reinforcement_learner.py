@@ -5,7 +5,7 @@ from blackjack import Card, Hand, List, Player, randint, Table
 from blackjack_robots.card_counter import BasicStrategy, sleep
 
 
-Blackjack_State = NDArray[int]  # NDArray(Pair, Ace, Hand_Min, Hand_Max, Upcard)
+Blackjack_State = NDArray[int]  # NDArray(Pair, Ace, Hand_Min, Hand_Max, Upcard, Insurance)
 
 
 class ReinforcementLearner(BasicStrategy):
@@ -17,13 +17,13 @@ class ReinforcementLearner(BasicStrategy):
         self.name = 'Reinforcement Learner'
         self.policy = neural_network
         self.actions = ['h', 's', 'd', 'y', 'sur']
-        self.policy.initialize(number_of_features=5, number_of_targets=5)
+        self.policy.initialize(number_of_features=5, number_of_targets=6)
         self.total_reward = 0
         self.games_played: List[Input_Matrix] = []
         self.actions_played: List[Output_Matrix] = []
         self.rewards: List[int] = []
         self.state_path_matrix: Input_Matrix = empty(shape=(0, 5), dtype=int)
-        self.action_path_matrix: Output_Matrix = empty(shape=(0, 5), dtype=int)
+        self.action_path_matrix: Output_Matrix = empty(shape=(0, 6), dtype=int)
 
     def action_indices_of(self, state_matrix: Input_Matrix) -> NDArray[int]:
         prob_actions: Output_Matrix = self.policy.forward_propagation(state_matrix)
@@ -32,17 +32,8 @@ class ReinforcementLearner(BasicStrategy):
     def ask_for_insurance(self) -> None:
         hand = self.hands[0]
         up_card = Card('A', '', face_up=True)
-        state: Blackjack_State = self.get_current_state(hand, up_card)
-        prob_actions: Output_Matrix = self.policy.forward_propagation(array([state]))
-        self.action_path_matrix = vstack([self.action_path_matrix, prob_actions])
-        sum_1, sum_2 = prob_actions[0:2].sum(), prob_actions[1:3].sum()
-        if sum_1 == sum_2:
-            accept = randint(0, 1)
-        elif sum_1 > sum_2:
-            accept = 1
-        else:
-            accept = 0
-        if accept:
+        choice = self.decision(hand, up_card, insurance=1)
+        if choice == 'h':
             price = self.total_bet // 2
             if self.chips >= price:
                 self.chips -= price
@@ -57,20 +48,21 @@ class ReinforcementLearner(BasicStrategy):
         choice = self.decision(hand, up_card)
         return self.choices[choice](hand)
 
-    def decision(self, hand: Hand, up_card: Card) -> str:
-        state: Blackjack_State = self.get_current_state(hand, up_card)
+    def decision(self, hand: Hand, up_card: Card, insurance: int = 0) -> str:
+        state: Blackjack_State = self.get_current_state(hand, up_card, insurance)
+        self.state_path_matrix = vstack([self.state_path_matrix, state])
         prob_actions: Output_Matrix = self.policy.forward_propagation(array([state]))
         self.action_path_matrix = vstack([self.action_path_matrix, prob_actions])
         index = argmax(prob_actions, axis=1).item()
         return self.actions[index]
 
-    def get_current_state(self, hand: Hand, up_card: Card) -> Blackjack_State:
+    @staticmethod
+    def get_current_state(hand: Hand, up_card: Card, insurance: int = 0) -> Blackjack_State:
         hand_min, hand_max = npmin(hand.value), npmax(hand.value)
         is_pair = int(hand.pair())
         has_ace = int(hand.has_ace())
         up_card_value = npmax(up_card.get_value())
-        state = array([is_pair, has_ace, hand_min, hand_max, up_card_value])
-        self.state_path_matrix = vstack([self.state_path_matrix, state])
+        state = array([is_pair, has_ace, hand_min, hand_max, up_card_value, insurance])
         return state
 
     def lost(self, hand: Hand) -> None:
