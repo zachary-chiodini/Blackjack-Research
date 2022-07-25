@@ -78,7 +78,7 @@ class NeuralNetwork:
         return 1.0 / (1.0 + np.exp(-x))
 
     @staticmethod
-    def cost(A: Output_Matrix, Y: Target_Matrix) -> Real:
+    def error(A: Output_Matrix, Y: Target_Matrix) -> Real:
         """This is the sum of squared residuals."""
         return np.square(A - Y).sum()
 
@@ -175,7 +175,7 @@ class MultilayerPerceptron(NeuralNetwork):
                 print('Convergence achieved.')
                 break
         final_output = self.forward_propagation(X)
-        self.score = self.cost(final_output, Y)
+        self.score = self.error(final_output, Y)
         return None
 
     def _forward_propagation(self, X: Input_Matrix, A_ref: Dict, Z_ref: Dict) -> Output_Matrix:
