@@ -22,8 +22,8 @@ class ReinforcementLearner(BasicStrategy):
         self.games_played: List[Input_Matrix] = []
         self.actions_played: List[Output_Matrix] = []
         self.rewards: List[int] = []
-        self.state_matrix: Input_Matrix = empty(shape=(0, 5), dtype=int)
-        self.action_matrix: Output_Matrix = empty(shape=(0, 5), dtype=int)
+        self.state_path_matrix: Input_Matrix = empty(shape=(0, 5), dtype=int)
+        self.action_path_matrix: Output_Matrix = empty(shape=(0, 5), dtype=int)
 
     def action_indices_of(self, state_matrix: Input_Matrix) -> NDArray[int]:
         prob_actions: Output_Matrix = self.policy.forward_propagation(state_matrix)
@@ -34,7 +34,7 @@ class ReinforcementLearner(BasicStrategy):
         up_card = Card('A', '', face_up=True)
         state: Blackjack_State = self.get_current_state(hand, up_card)
         prob_actions: Output_Matrix = self.policy.forward_propagation(array([state]))
-        self.action_matrix = vstack([self.action_matrix, prob_actions])
+        self.action_path_matrix = vstack([self.action_path_matrix, prob_actions])
         sum_1, sum_2 = prob_actions[0:2].sum(), prob_actions[1:3].sum()
         if sum_1 == sum_2:
             accept = randint(0, 1)
@@ -60,7 +60,7 @@ class ReinforcementLearner(BasicStrategy):
     def decision(self, hand: Hand, up_card: Card) -> str:
         state: Blackjack_State = self.get_current_state(hand, up_card)
         prob_actions: Output_Matrix = self.policy.forward_propagation(array([state]))
-        self.action_matrix = vstack([self.action_matrix, prob_actions])
+        self.action_path_matrix = vstack([self.action_path_matrix, prob_actions])
         index = argmax(prob_actions, axis=1).item()
         return self.actions[index]
 
@@ -70,7 +70,7 @@ class ReinforcementLearner(BasicStrategy):
         has_ace = int(hand.has_ace())
         up_card_value = npmax(up_card.get_value())
         state = array([is_pair, has_ace, hand_min, hand_max, up_card_value])
-        self.state_matrix = vstack([self.state_matrix, state])
+        self.state_path_matrix = vstack([self.state_path_matrix, state])
         return state
 
     def push(self, hand: Hand) -> None:
@@ -126,11 +126,11 @@ class ReinforcementLearner(BasicStrategy):
 
     def _reset(self) -> None:
         if not self.hands:
-            self.games_played.append(self.state_matrix)
-            self.actions_played.append(self.action_matrix)
+            self.games_played.append(self.state_path_matrix)
+            self.actions_played.append(self.action_path_matrix)
             self.rewards.append(self.total_reward)
-            self.state_matrix = empty(shape=(0, 5), dtype=int)
-            self.action_matrix = empty(shape=(0, 5), dtype=int)
+            self.state_path_matrix = empty(shape=(0, 5), dtype=int)
+            self.action_path_matrix = empty(shape=(0, 5), dtype=int)
             self.total_reward = 0
         return None
 
