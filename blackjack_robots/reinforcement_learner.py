@@ -17,13 +17,13 @@ class ReinforcementLearner(BasicStrategy):
         self.name = 'Reinforcement Learner'
         self.policy = neural_network
         self.actions = ['h', 's', 'd', 'y', 'sur']
-        self.policy.initialize(number_of_features=5, number_of_targets=6)
+        self.policy.initialize(number_of_features=6, number_of_targets=5)
         self.total_reward = 0
         self.games_played: List[Input_Matrix] = []
         self.actions_played: List[Output_Matrix] = []
         self.rewards: List[int] = []
-        self.state_path_matrix: Input_Matrix = empty(shape=(0, 5), dtype=int)
-        self.action_path_matrix: Output_Matrix = empty(shape=(0, 6), dtype=int)
+        self.state_path_matrix: Input_Matrix = empty(shape=(0, 6), dtype=int)
+        self.action_path_matrix: Output_Matrix = empty(shape=(0, 5), dtype=int)
 
     def action_indices_of(self, state_matrix: Input_Matrix) -> NDArray[int]:
         prob_actions: Output_Matrix = self.policy.forward_propagation(state_matrix)
@@ -50,7 +50,7 @@ class ReinforcementLearner(BasicStrategy):
 
     def decision(self, hand: Hand, up_card: Card, insurance: int = 0) -> str:
         state: Blackjack_State = self.get_current_state(hand, up_card, insurance)
-        self.state_path_matrix = vstack([self.state_path_matrix, array([state])])
+        self.state_path_matrix = vstack([self.state_path_matrix, state])
         prob_actions: Output_Matrix = self.policy.forward_propagation(array([state]))
         self.action_path_matrix = vstack([self.action_path_matrix, prob_actions])
         index = argmax(prob_actions, axis=1).item()
