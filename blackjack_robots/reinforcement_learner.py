@@ -33,7 +33,8 @@ class ReinforcementLearner(BasicStrategy):
         hand = self.hands[0]
         up_card = Card('A', '', face_up=True)
         state: Blackjack_State = self.get_current_state(hand, up_card)
-        prob_actions: Output_Matrix = self.policy.forward_propagation(state)
+        prob_actions: Output_Matrix = self.policy.forward_propagation(array([state]))
+        self.action_matrix = vstack([self.action_matrix, prob_actions])
         sum_1, sum_2 = prob_actions[0:2].sum(), prob_actions[1:3].sum()
         if sum_1 == sum_2:
             accept = randint(0, 1)
@@ -59,6 +60,7 @@ class ReinforcementLearner(BasicStrategy):
     def decision(self, hand: Hand, up_card: Card) -> str:
         state: Blackjack_State = self.get_current_state(hand, up_card)
         prob_actions: Output_Matrix = self.policy.forward_propagation(array([state]))
+        self.action_matrix = vstack([self.action_matrix, prob_actions])
         index = argmax(prob_actions, axis=1).item()
         return self.actions[index]
 
@@ -109,16 +111,6 @@ class ReinforcementLearner(BasicStrategy):
         self._reset()
         return None
 
-    def _reset(self) -> None:
-        if not self.hands:
-            self.games_played.append(self.state_matrix)
-            self.actions_played.append(self.action_matrix)
-            self.rewards.append(self.total_reward)
-            self.state_matrix = empty(shape=(0, 5), dtype=int)
-            self.action_matrix = empty(shape=(0, 5), dtype=int)
-            self.total_reward = 0
-        return None
-
     def use_insurance(self, hand: Hand) -> None:
         self.total_reward += self.insurance + hand.bet
         self.chips += self.insurance + hand.bet
@@ -132,11 +124,15 @@ class ReinforcementLearner(BasicStrategy):
         self._reset()
         return None
 
-    def your_turn(self) -> bool:
-        if self._your_turn:
-            return True
-        self._your_turn = True
-        return False
+    def _reset(self) -> None:
+        if not self.hands:
+            self.games_played.append(self.state_matrix)
+            self.actions_played.append(self.action_matrix)
+            self.rewards.append(self.total_reward)
+            self.state_matrix = empty(shape=(0, 5), dtype=int)
+            self.action_matrix = empty(shape=(0, 5), dtype=int)
+            self.total_reward = 0
+        return None
 
 
 if __name__ == '__main__':
