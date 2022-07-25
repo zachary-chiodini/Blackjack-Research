@@ -170,6 +170,15 @@ class BasicStrategy(Player):
         self.stand()
         return 's'  # game is over.
 
+    def surrender(self, hand: Hand) -> str:
+        if len(hand.cards) == 2:
+            self.chips += hand.bet // 2
+            self.hands.remove(hand)
+            self.insurance = 0
+            self._your_turn = False
+            return 'sur'
+        return 'h'
+
 
 if __name__ == '__main__':
     table = Table(players=2, decks=6, minimum_bet=50, penetration=0.75)

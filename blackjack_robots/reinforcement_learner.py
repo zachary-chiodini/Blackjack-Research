@@ -82,6 +82,18 @@ class ReinforcementLearner(BasicStrategy):
         self._your_turn = False
         return None
 
+    def surrender(self, hand: Hand) -> str:
+        if len(hand.cards) == 2:
+            self.total_reward += hand.bet // 2
+            self.chips += hand.bet // 2
+            self.hands.remove(hand)
+            self.insurance = 0
+            self._your_turn = False
+            self._reset()
+            return 'sur'
+        self.stand()
+        return 's'
+
     def won(self, hand: Hand) -> None:
         self.total_reward += 2 * hand.bet
         self.chips += 2 * hand.bet
