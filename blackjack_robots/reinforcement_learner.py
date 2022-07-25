@@ -73,6 +73,15 @@ class ReinforcementLearner(BasicStrategy):
         self.state_path_matrix = vstack([self.state_path_matrix, state])
         return state
 
+    def lost(self, hand: Hand) -> None:
+        self.total_reward -= hand.bet
+        self.hands.remove(hand)
+        self.show_score(hand, 'lost')
+        self.insurance = 0
+        self._your_turn = False
+        self._reset()
+        return None
+
     def push(self, hand: Hand) -> None:
         self.total_reward += hand.bet
         self.chips += hand.bet
@@ -94,6 +103,19 @@ class ReinforcementLearner(BasicStrategy):
         self.stand()
         return 's'
 
+    def use_insurance(self, hand: Hand) -> None:
+        self.total_reward += self.insurance + hand.bet
+        self.chips += self.insurance + hand.bet
+        print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
+        print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
+        sleep(self.sleep_int)
+        if hand in self.hands:
+            self.hands.remove(hand)
+        self.insurance = 0
+        self._your_turn = False
+        self._reset()
+        return None
+
     def won(self, hand: Hand) -> None:
         self.total_reward += 2 * hand.bet
         self.chips += 2 * hand.bet
@@ -109,28 +131,6 @@ class ReinforcementLearner(BasicStrategy):
         self.chips += int(hand.bet * 2.5)
         self.hands.remove(hand)
         self.show_score(hand, 'won', blackjack=True)
-        self.insurance = 0
-        self._your_turn = False
-        self._reset()
-        return None
-
-    def lost(self, hand: Hand) -> None:
-        self.total_reward -= hand.bet
-        self.hands.remove(hand)
-        self.show_score(hand, 'lost')
-        self.insurance = 0
-        self._your_turn = False
-        self._reset()
-        return None
-
-    def use_insurance(self, hand: Hand) -> None:
-        self.total_reward += self.insurance + hand.bet
-        self.chips += self.insurance + hand.bet
-        print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
-        print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
-        sleep(self.sleep_int)
-        if hand in self.hands:
-            self.hands.remove(hand)
         self.insurance = 0
         self._your_turn = False
         self._reset()
