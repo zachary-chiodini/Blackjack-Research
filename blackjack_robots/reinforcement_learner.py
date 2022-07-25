@@ -50,7 +50,7 @@ class ReinforcementLearner(BasicStrategy):
 
     def decision(self, hand: Hand, up_card: Card, insurance: int = 0) -> str:
         state: Blackjack_State = self.get_current_state(hand, up_card, insurance)
-        self.state_path_matrix = vstack([self.state_path_matrix, state])
+        self.state_path_matrix = vstack([self.state_path_matrix, array([state])])
         prob_actions: Output_Matrix = self.policy.forward_propagation(array([state]))
         self.action_path_matrix = vstack([self.action_path_matrix, prob_actions])
         index = argmax(prob_actions, axis=1).item()
