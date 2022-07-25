@@ -89,6 +89,7 @@ class ReinforcementLearner(BasicStrategy):
         self.show_score(hand, 'tied')
         self.insurance = 0
         self._your_turn = False
+        self._reset()
         return None
 
     def surrender(self, hand: Hand) -> str:
@@ -109,7 +110,7 @@ class ReinforcementLearner(BasicStrategy):
         print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
         sleep(self.sleep_int)
-        if hand in self.hands:
+        if self.hands:
             self.hands.remove(hand)
         self.insurance = 0
         self._your_turn = False
@@ -141,6 +142,9 @@ class ReinforcementLearner(BasicStrategy):
             self.games_played.append(self.state_path_matrix)
             self.actions_played.append(self.action_path_matrix)
             self.rewards.append(self.total_reward)
+            print(self.state_path_matrix)
+            print(self.action_path_matrix)
+            print(self.rewards)
             self.state_path_matrix = empty(shape=(0, 5), dtype=int)
             self.action_path_matrix = empty(shape=(0, 5), dtype=int)
             self.total_reward = 0
