@@ -167,6 +167,7 @@ class BasicStrategy(Player):
             self.insurance = 0
             self._your_turn = False
             return 'y'
+        self.stand()
         return 's'  # game is over.
 
 

@@ -31,8 +31,7 @@ class ReinforcementLearner(BasicStrategy):
 
     def ask_for_insurance(self) -> None:
         hand = self.hands[0]
-        up_card = Card('A', '', face_up=True)
-        state: Blackjack_State = self.get_current_state(hand, up_card)
+        state: Blackjack_State = self.get_current_state(hand)
         prob_actions: Output_Matrix = self.policy.forward_propagation(state)
         sum_1, sum_2 = prob_actions[0:2].sum(), prob_actions[1:3].sum()
         if sum_1 == sum_2:
@@ -53,7 +52,6 @@ class ReinforcementLearner(BasicStrategy):
 
     def call(self, hand: Hand) -> str:
         choice = self.decision(hand)
-        print(choice)
         return self.choices[choice](hand)
 
     def decision(self, hand: Hand) -> str:
@@ -72,19 +70,6 @@ class ReinforcementLearner(BasicStrategy):
         self.state_matrix = vstack([self.state_matrix, state])
         return state
 
-    def place_bet(self, minimum_bet: int) -> bool:
-        if self.chips >= minimum_bet:
-            print(f'{self.name}; Chips: {self.chips}; Place bet: {minimum_bet}')
-            sleep(self.sleep_int)
-            self.total_bet = 0
-            self.hands.append(Hand(bet=minimum_bet))
-            self.total_bet += minimum_bet
-            self.chips -= minimum_bet
-            self.rounds += 1
-            self._your_turn = True
-            return True
-        return False
-
     def push(self, hand: Hand) -> None:
         self.total_reward += hand.bet
         self.chips += hand.bet
@@ -93,15 +78,6 @@ class ReinforcementLearner(BasicStrategy):
         self.insurance = 0
         self._your_turn = False
         return None
-
-    def split(self, hand: Hand) -> str:
-        if self.chips >= hand.bet and hand.pair():
-            self.chips -= hand.bet
-            self.total_bet += hand.bet
-            self.insurance = 0
-            self._your_turn = False
-            return 'y'
-        return 's'
 
     def won(self, hand: Hand) -> None:
         self.total_reward += 2 * hand.bet
