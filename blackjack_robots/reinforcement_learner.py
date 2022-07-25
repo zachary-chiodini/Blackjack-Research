@@ -127,16 +127,6 @@ class ReinforcementLearner(BasicStrategy):
         self._reset()
         return None
 
-    def won_blackjack(self, hand: Hand) -> None:
-        self.total_reward += int(hand.bet * 2.5)
-        self.chips += int(hand.bet * 2.5)
-        self.hands.remove(hand)
-        self.show_score(hand, 'won', blackjack=True)
-        self.insurance = 0
-        self._your_turn = False
-        self._reset()
-        return None
-
     def _reset(self) -> None:
         if not self.hands:
             self.games_played.append(self.state_path_matrix)
