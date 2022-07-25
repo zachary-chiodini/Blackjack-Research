@@ -31,7 +31,8 @@ class ReinforcementLearner(BasicStrategy):
 
     def ask_for_insurance(self) -> None:
         hand = self.hands[0]
-        state: Blackjack_State = self.get_current_state(hand)
+        up_card = Card('A', '', face_up=True)
+        state: Blackjack_State = self.get_current_state(hand, up_card)
         prob_actions: Output_Matrix = self.policy.forward_propagation(state)
         sum_1, sum_2 = prob_actions[0:2].sum(), prob_actions[1:3].sum()
         if sum_1 == sum_2:
@@ -51,20 +52,20 @@ class ReinforcementLearner(BasicStrategy):
         return None
 
     def call(self, hand: Hand) -> str:
-        choice = self.decision(hand)
+        up_card = self.dealer_ref.hand.cards[1]
+        choice = self.decision(hand, up_card)
         return self.choices[choice](hand)
 
-    def decision(self, hand: Hand) -> str:
-        state: Blackjack_State = self.get_current_state(hand)
+    def decision(self, hand: Hand, up_card: Card) -> str:
+        state: Blackjack_State = self.get_current_state(hand, up_card)
         prob_actions: Output_Matrix = self.policy.forward_propagation(array([state]))
         index = argmax(prob_actions, axis=1).item()
         return self.actions[index]
 
-    def get_current_state(self, hand: Hand) -> Blackjack_State:
+    def get_current_state(self, hand: Hand, up_card: Card) -> Blackjack_State:
         hand_min, hand_max = npmin(hand.value), npmax(hand.value)
         is_pair = int(hand.pair())
         has_ace = int(hand.has_ace())
-        up_card = self.dealer_ref.hand.cards[1]
         up_card_value = npmax(up_card.get_value())
         state = array([is_pair, has_ace, hand_min, hand_max, up_card_value])
         self.state_matrix = vstack([self.state_matrix, state])

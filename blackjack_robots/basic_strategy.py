@@ -111,7 +111,8 @@ class BasicStrategy(Player):
         pass
 
     def call(self, hand: Hand) -> str:
-        choice = self.decision(hand)
+        up_card = self.dealer_ref.hand.cards[1]
+        choice = self.decision(hand, up_card)
         if choice == 'ds':
             if len(hand.cards) == 2:
                 choice = 'd'
@@ -119,7 +120,7 @@ class BasicStrategy(Player):
                 choice = 's'
         return self.choices[choice](hand)
 
-    def decision(self, hand: Hand) -> str:
+    def decision(self, hand: Hand, up_card: Card) -> str:
         min_, max_ = npmin(hand.value), npmax(hand.value)
         if max_ > 21:
             total = min_
@@ -132,7 +133,6 @@ class BasicStrategy(Player):
                 has_ace = True
         else:
             has_ace = False
-        up_card = self.dealer_ref.hand.cards[1]
         return self.decision_tree['pair'][hand.pair()]['ace'][has_ace]\
             ['total'][total]['upcard'][npmax(up_card.get_value())]
 
