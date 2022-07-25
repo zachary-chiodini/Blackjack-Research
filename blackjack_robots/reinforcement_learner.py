@@ -1,7 +1,7 @@
 from numpy import argmax, array, empty, vstack, max as npmax, min as npmin
 
 from ai.neural_network import Input_Matrix, MultilayerPerceptron, NDArray, NeuralNetwork, Output_Matrix
-from blackjack import Card, Hand, List, Player, randint, Table
+from blackjack import Card, Hand, List, Player, Table
 from blackjack_robots.card_counter import BasicStrategy, sleep
 
 
@@ -17,13 +17,15 @@ class ReinforcementLearner(BasicStrategy):
         self.name = 'Reinforcement Learner'
         self.policy = neural_network
         self.actions = ['h', 's', 'd', 'y', 'sur']
-        self.policy.initialize(number_of_features=6, number_of_targets=5)
+        self.num_features = 6
+        self.num_targets = len(self.actions)
+        self.policy.initialize(self.num_features, self.num_targets)
         self.total_reward = 0
         self.games_played: List[Input_Matrix] = []
         self.actions_played: List[Output_Matrix] = []
         self.rewards: List[int] = []
-        self.state_path_matrix: Input_Matrix = empty(shape=(0, 6), dtype=int)
-        self.action_path_matrix: Output_Matrix = empty(shape=(0, 5), dtype=int)
+        self.state_path_matrix: Input_Matrix = empty(shape=(0, self.num_features), dtype=int)
+        self.action_path_matrix: Output_Matrix = empty(shape=(0, self.num_targets), dtype=int)
 
     def action_indices_of(self, state_matrix: Input_Matrix) -> NDArray[int]:
         prob_actions: Output_Matrix = self.policy.forward_propagation(state_matrix)
@@ -124,11 +126,8 @@ class ReinforcementLearner(BasicStrategy):
             self.games_played.append(self.state_path_matrix)
             self.actions_played.append(self.action_path_matrix)
             self.rewards.append(self.total_reward)
-            print(self.state_path_matrix)
-            print(self.action_path_matrix)
-            print(self.rewards)
-            self.state_path_matrix = empty(shape=(0, 5), dtype=int)
-            self.action_path_matrix = empty(shape=(0, 5), dtype=int)
+            self.state_path_matrix = empty(shape=(0, self.num_features), dtype=int)
+            self.action_path_matrix = empty(shape=(0, self.num_targets), dtype=int)
             self.total_reward = 0
         return None
 
