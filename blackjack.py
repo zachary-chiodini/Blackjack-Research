@@ -448,7 +448,7 @@ class Dealer:
     def split(self, player: Player, hand: Hand) -> None:
         card1, card2 = hand.cards
         player.hands.remove(hand)
-        split_hands = [Hand(card1, hand.bet), Hand(card2, hand.bet)]
+        split_hands = [Hand(card1, bet=hand.bet), Hand(card2, bet=hand.bet)]
         player.hands.extend(split_hands)
         self.deal_card(*split_hands)
         player.show_hand(*split_hands)
