@@ -69,7 +69,7 @@ class ReinforcementLearner(BasicStrategy):
         return state
 
     def lost(self, hand: Hand) -> None:
-        if self.reward_path_array and self.reward_path_array[-1] == 0:
+        if self.reward_path_array.size and self.reward_path_array[-1] == 0:
             self.reward_path_array[-1] = -hand.bet
         self.chips -= hand.bet
         self.hands.remove(hand)
@@ -80,7 +80,7 @@ class ReinforcementLearner(BasicStrategy):
         return None
 
     def push(self, hand: Hand) -> None:
-        if self.reward_path_array and self.reward_path_array[-1] == 0:
+        if self.reward_path_array.size and self.reward_path_array[-1] == 0:
             self.reward_path_array[-1] = hand.bet
         self.chips += hand.bet
         self.hands.remove(hand)
