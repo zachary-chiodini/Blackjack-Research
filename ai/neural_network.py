@@ -195,3 +195,22 @@ class MultilayerPerceptron(NeuralNetwork):
             A_ref[current_layer] = self.activation(Z_ref[current_layer])
             current_layer += 1
         return A_ref[current_layer - 1]
+
+
+class Policy(NeuralNetwork):
+
+    def __init__(self, perceptrons_per_hidden_layer: List[int] = []):
+        super().__init__(perceptrons_per_hidden_layer)
+
+    @staticmethod
+    def error(A: Output_Matrix, Y: Target_Matrix) -> Real:
+        """This is the sum of squared residuals."""
+        return np.square(A - Y).sum()
+
+    def forward_propagation(self, L: Input_Matrix) -> Output_Matrix:
+        raise NotImplementedError('The method "forward_propagation" is not implemented.')
+
+    @staticmethod
+    def grad(A: Output_Matrix, Y: Target_Matrix) -> NDArray[Real]:
+        """This is the gradient of the sum of squared residuals with respect to the output of the output layer."""
+        return 2 * (A - Y)
