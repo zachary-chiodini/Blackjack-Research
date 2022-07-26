@@ -69,7 +69,9 @@ class ReinforcementLearner(BasicStrategy):
         return state
 
     def lost(self, hand: Hand) -> None:
-        self.reward_path_array[-1] = -hand.bet
+        if self.reward_path_array and self.reward_path_array[-1] == 0:
+            self.reward_path_array[-1] = -hand.bet
+        self.chips -= hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'lost')
         self.insurance = 0
@@ -78,7 +80,8 @@ class ReinforcementLearner(BasicStrategy):
         return None
 
     def push(self, hand: Hand) -> None:
-        self.reward_path_array[-1] = hand.bet
+        if self.reward_path_array and self.reward_path_array[-1] == 0:
+            self.reward_path_array[-1] = hand.bet
         self.chips += hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'tied')
@@ -123,7 +126,6 @@ class ReinforcementLearner(BasicStrategy):
         return None
 
     def won_blackjack(self, hand: Hand) -> None:
-        self.reward_path_array[-1] = int(hand.bet * 2.5)
         self.chips += int(hand.bet * 2.5)
         self.hands.remove(hand)
         self.show_score(hand, 'won', blackjack=True)
