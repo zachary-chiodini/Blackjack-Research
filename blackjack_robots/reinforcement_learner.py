@@ -1,4 +1,4 @@
-from numpy import argmax, array, empty, vstack, max as npmax, min as npmin
+from numpy import argmax, array, empty, hstack, vstack, max as npmax, min as npmin
 
 from ai.neural_network import Input_Matrix, MultilayerPerceptron, NDArray, NeuralNetwork, Output_Matrix
 from blackjack import Card, Hand, List, Player, Table
@@ -20,12 +20,12 @@ class ReinforcementLearner(BasicStrategy):
         self.num_features = 6
         self.num_targets = len(self.actions)
         self.policy.initialize(self.num_features, self.num_targets)
-        self.total_reward = 0
         self.games_played: List[Input_Matrix] = []
         self.actions_played: List[Output_Matrix] = []
-        self.rewards: List[int] = []
+        self.rewards: List[NDArray[int]] = []
         self.state_path_matrix: Input_Matrix = empty(shape=(0, self.num_features), dtype=int)
         self.action_path_matrix: Output_Matrix = empty(shape=(0, self.num_targets), dtype=int)
+        self.reward_path_array: NDArray[int] = empty(shape=(0,), dtype=int)
 
     def action_indices_of(self, state_matrix: Input_Matrix) -> NDArray[int]:
         prob_actions: Output_Matrix = self.policy.forward_propagation(state_matrix)
@@ -55,6 +55,7 @@ class ReinforcementLearner(BasicStrategy):
         self.state_path_matrix = vstack([self.state_path_matrix, state])
         prob_actions: Output_Matrix = self.policy.forward_propagation(array([state]))
         self.action_path_matrix = vstack([self.action_path_matrix, prob_actions])
+        self.reward_path_array = hstack([self.reward_path_array, 0])
         index = argmax(prob_actions, axis=1).item()
         return self.actions[index]
 
@@ -68,7 +69,7 @@ class ReinforcementLearner(BasicStrategy):
         return state
 
     def lost(self, hand: Hand) -> None:
-        self.total_reward -= hand.bet
+        self.reward_path_array[-1] = -hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'lost')
         self.insurance = 0
@@ -77,7 +78,7 @@ class ReinforcementLearner(BasicStrategy):
         return None
 
     def push(self, hand: Hand) -> None:
-        self.total_reward += hand.bet
+        self.reward_path_array[-1] = hand.bet
         self.chips += hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'tied')
@@ -88,7 +89,7 @@ class ReinforcementLearner(BasicStrategy):
 
     def surrender(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
-            self.total_reward += hand.bet // 2
+            self.reward_path_array[-1] = hand.bet // 2
             self.chips += hand.bet // 2
             self.hands.remove(hand)
             self.insurance = 0
@@ -99,7 +100,7 @@ class ReinforcementLearner(BasicStrategy):
         return 's'
 
     def use_insurance(self, hand: Hand) -> None:
-        self.total_reward += self.insurance + hand.bet
+        self.reward_path_array[-1] = self.insurance + hand.bet
         self.chips += self.insurance + hand.bet
         print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
@@ -112,7 +113,7 @@ class ReinforcementLearner(BasicStrategy):
         return None
 
     def won(self, hand: Hand) -> None:
-        self.total_reward += 2 * hand.bet
+        self.reward_path_array[-1] = 2 * hand.bet
         self.chips += 2 * hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'won')
@@ -121,14 +122,21 @@ class ReinforcementLearner(BasicStrategy):
         self._reset()
         return None
 
+    def won_blackjack(self, hand: Hand) -> None:
+        self.reward_path_array[-1] = int(hand.bet * 2.5)
+        self.chips += int(hand.bet * 2.5)
+        self.hands.remove(hand)
+        self.show_score(hand, 'won', blackjack=True)
+        self.insurance = 0
+        self._your_turn = False
+        self._reset()
+        return None
+
     def _reset(self) -> None:
         if not self.hands:
-            self.games_played.append(self.state_path_matrix)
-            self.actions_played.append(self.action_path_matrix)
-            self.rewards.append(self.total_reward)
-            self.state_path_matrix = empty(shape=(0, self.num_features), dtype=int)
-            self.action_path_matrix = empty(shape=(0, self.num_targets), dtype=int)
-            self.total_reward = 0
+            print(self.state_path_matrix)
+            print(self.action_path_matrix)
+            print(self.reward_path_array)
         return None
 
 
