@@ -67,8 +67,8 @@ class ReinforcementLearner(BasicStrategy):
         return state
 
     def lost(self, hand: Hand) -> None:
-        if self.reward_path_array.size and self.reward_path_array[-1] == 0:
-            self.reward_path_array[-1] = -hand.bet
+        if self.reward_path_array.size and self.reward_path_array[-self.num_hands] == 0:
+            self.reward_path_array[-self.num_hands] = -hand.bet
         self.chips -= hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'lost')
@@ -112,7 +112,7 @@ class ReinforcementLearner(BasicStrategy):
         return 's'
 
     def use_insurance(self, hand: Hand) -> None:
-        self.reward_path_array[-1] = self.insurance + hand.bet
+        self.reward_path_array[-self.num_hands] = self.insurance + hand.bet
         self.chips += self.insurance + hand.bet
         print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
