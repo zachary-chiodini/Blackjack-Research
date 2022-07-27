@@ -19,10 +19,8 @@ class ReinforcementLearner(BasicStrategy):
         self.actions = ['h', 's', 'd', 'y', 'sur']
         self.num_features = 6
         self.num_targets = len(self.actions)
+        self.num_hands = 1
         self.policy.initialize(self.num_features, self.num_targets)
-        self.games_played: List[Input_Matrix] = []
-        self.actions_played: List[Output_Matrix] = []
-        self.rewards: List[NDArray[int]] = []
         self.state_path_matrix: Input_Matrix = empty(shape=(0, self.num_features), dtype=int)
         self.action_path_matrix: Output_Matrix = empty(shape=(0, self.num_targets), dtype=int)
         self.reward_path_array: NDArray[int] = empty(shape=(0,), dtype=int)
@@ -70,7 +68,7 @@ class ReinforcementLearner(BasicStrategy):
 
     def lost(self, hand: Hand) -> None:
         if self.reward_path_array.size and self.reward_path_array[-1] == 0:
-            self.reward_path_array[-1] -= hand.bet
+            self.reward_path_array[-1] = -hand.bet
         self.chips -= hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'lost')
@@ -80,8 +78,8 @@ class ReinforcementLearner(BasicStrategy):
         return None
 
     def push(self, hand: Hand) -> None:
-        if self.reward_path_array.size and self.reward_path_array[-1] == 0:
-            self.reward_path_array[-1] += hand.bet
+        if self.reward_path_array.size and self.reward_path_array[-self.num_hands] == 0:
+            self.reward_path_array[-self.num_hands] = hand.bet
         self.chips += hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'tied')
@@ -90,9 +88,20 @@ class ReinforcementLearner(BasicStrategy):
         self._reset()
         return None
 
+    def split(self, hand: Hand) -> str:
+        if self.chips >= hand.bet and hand.pair():
+            self.chips -= hand.bet
+            self.total_bet += hand.bet
+            self.insurance = 0
+            self.num_hands += 1
+            self._your_turn = False
+            return 'y'
+        self.stand()
+        return 's'
+
     def surrender(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
-            self.reward_path_array[-1] += hand.bet // 2
+            self.reward_path_array[-self.num_hands] = hand.bet // 2
             self.chips += hand.bet // 2
             self.hands.remove(hand)
             self.insurance = 0
@@ -103,7 +112,7 @@ class ReinforcementLearner(BasicStrategy):
         return 's'
 
     def use_insurance(self, hand: Hand) -> None:
-        self.reward_path_array[-1] += self.insurance + hand.bet
+        self.reward_path_array[-1] = self.insurance + hand.bet
         self.chips += self.insurance + hand.bet
         print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
@@ -116,7 +125,7 @@ class ReinforcementLearner(BasicStrategy):
         return None
 
     def won(self, hand: Hand) -> None:
-        self.reward_path_array[-1] += 2 * hand.bet
+        self.reward_path_array[-self.num_hands] = 2 * hand.bet
         self.chips += 2 * hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'won')
@@ -126,6 +135,8 @@ class ReinforcementLearner(BasicStrategy):
         return None
 
     def _reset(self) -> None:
+        if self.num_hands > 1:
+            self.num_hands -= 1
         if not self.hands:
             print(self.state_path_matrix)
             print(self.action_path_matrix)
