@@ -70,7 +70,7 @@ class ReinforcementLearner(BasicStrategy):
 
     def lost(self, hand: Hand) -> None:
         if self.reward_path_array.size and self.reward_path_array[-1] == 0:
-            self.reward_path_array[-1] = -hand.bet
+            self.reward_path_array[-1] -= hand.bet
         self.chips -= hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'lost')
@@ -81,7 +81,7 @@ class ReinforcementLearner(BasicStrategy):
 
     def push(self, hand: Hand) -> None:
         if self.reward_path_array.size and self.reward_path_array[-1] == 0:
-            self.reward_path_array[-1] = hand.bet
+            self.reward_path_array[-1] += hand.bet
         self.chips += hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'tied')
@@ -92,7 +92,7 @@ class ReinforcementLearner(BasicStrategy):
 
     def surrender(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
-            self.reward_path_array[-1] = hand.bet // 2
+            self.reward_path_array[-1] += hand.bet // 2
             self.chips += hand.bet // 2
             self.hands.remove(hand)
             self.insurance = 0
@@ -103,7 +103,7 @@ class ReinforcementLearner(BasicStrategy):
         return 's'
 
     def use_insurance(self, hand: Hand) -> None:
-        self.reward_path_array[-1] = self.insurance + hand.bet
+        self.reward_path_array[-1] += self.insurance + hand.bet
         self.chips += self.insurance + hand.bet
         print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
@@ -116,19 +116,10 @@ class ReinforcementLearner(BasicStrategy):
         return None
 
     def won(self, hand: Hand) -> None:
-        self.reward_path_array[-1] = 2 * hand.bet
+        self.reward_path_array[-1] += 2 * hand.bet
         self.chips += 2 * hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'won')
-        self.insurance = 0
-        self._your_turn = False
-        self._reset()
-        return None
-
-    def won_blackjack(self, hand: Hand) -> None:
-        self.chips += int(hand.bet * 2.5)
-        self.hands.remove(hand)
-        self.show_score(hand, 'won', blackjack=True)
         self.insurance = 0
         self._your_turn = False
         self._reset()
