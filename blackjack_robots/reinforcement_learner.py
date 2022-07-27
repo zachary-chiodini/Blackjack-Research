@@ -1,7 +1,7 @@
 from numpy import argmax, array, empty, hstack, vstack, max as npmax, min as npmin
 
 from ai.neural_network import Input_Matrix, MultilayerPerceptron, NDArray, NeuralNetwork, Output_Matrix
-from blackjack import Card, Hand, List, Player, Table
+from blackjack import Card, Hand, Player, Table
 from blackjack_robots.card_counter import BasicStrategy, sleep
 
 
@@ -49,7 +49,6 @@ class ReinforcementLearner(BasicStrategy):
         self.show_score(hand, 'lost')
         self.insurance = 0
         self._your_turn = False
-        self._reset()
         return None
 
     def call(self, hand: Hand) -> str:
@@ -83,7 +82,6 @@ class ReinforcementLearner(BasicStrategy):
         self.show_score(hand, 'lost')
         self.insurance = 0
         self._your_turn = False
-        self._reset()
         return None
 
     def push(self, hand: Hand) -> None:
@@ -94,7 +92,6 @@ class ReinforcementLearner(BasicStrategy):
         self.show_score(hand, 'tied')
         self.insurance = 0
         self._your_turn = False
-        self._reset()
         return None
 
     def surrender(self, hand: Hand) -> str:
@@ -104,7 +101,6 @@ class ReinforcementLearner(BasicStrategy):
             self.hands.remove(hand)
             self.insurance = 0
             self._your_turn = False
-            self._reset()
             return 'sur'
         self.stand()
         return 's'
@@ -119,7 +115,6 @@ class ReinforcementLearner(BasicStrategy):
             self.hands.remove(hand)
         self.insurance = 0
         self._your_turn = False
-        self._reset()
         return None
 
     def won(self, hand: Hand) -> None:
@@ -129,7 +124,6 @@ class ReinforcementLearner(BasicStrategy):
         self.show_score(hand, 'won')
         self.insurance = 0
         self._your_turn = False
-        self._reset()
         return None
 
     def won_blackjack(self, hand: Hand) -> None:
@@ -140,13 +134,6 @@ class ReinforcementLearner(BasicStrategy):
         self.show_score(hand, 'won', blackjack=True)
         self.insurance = 0
         self._your_turn = False
-        return None
-
-    def _reset(self) -> None:
-        if not self.hands:
-            print(self.state_path_matrix)
-            print(self.action_path_matrix)
-            print(self.reward_path_array)
         return None
 
 
