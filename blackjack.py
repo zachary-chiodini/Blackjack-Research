@@ -188,6 +188,7 @@ class Player:
         self.chips = chips
         self.rounds = 0
         self.total_bet = 0
+        self.total_reward = 0
         self.insurance = 0
         self.dealer_ref: Union[Dealer, None] = None   # This is for robot players to use.
         self.choices = {'h': self.hit, 's': self.stand, 'd': self.double,
@@ -242,6 +243,7 @@ class Player:
         return 's'
 
     def lost(self, hand: Hand) -> None:
+        self.total_reward -= hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'lost')
         self.insurance = 0
@@ -262,9 +264,9 @@ class Player:
             if bet < minimum_bet:
                 return wrong_input_response()
             if bet <= self.chips:
-                self.total_bet = 0
+                self.total_bet = bet
+                self.total_reward = 0
                 self.hands.append(Hand(bet=bet))
-                self.total_bet += bet
                 self.chips -= bet
                 self.rounds += 1
                 self._your_turn = True
@@ -272,6 +274,7 @@ class Player:
         return False
 
     def push(self, hand: Hand) -> None:
+        self.total_reward += hand.bet
         self.chips += hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'tied')
@@ -309,6 +312,7 @@ class Player:
 
     def surrender(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
+            self.total_reward += hand.bet // 2
             self.chips += hand.bet // 2
             self.hands.remove(hand)
             self.insurance = 0
@@ -319,6 +323,7 @@ class Player:
         return self.call(hand)
 
     def use_insurance(self, hand: Hand) -> None:
+        self.total_reward += self.insurance + hand.bet
         self.chips += self.insurance + hand.bet
         print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
@@ -330,6 +335,7 @@ class Player:
         return None
 
     def won(self, hand: Hand) -> None:
+        self.total_reward += 2 * hand.bet
         self.chips += 2 * hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'won')
@@ -338,6 +344,7 @@ class Player:
         return None
 
     def won_blackjack(self, hand: Hand) -> None:
+        self.total_reward += int(hand.bet * 2.5)
         self.chips += int(hand.bet * 2.5)
         self.hands.remove(hand)
         self.show_score(hand, 'won', blackjack=True)

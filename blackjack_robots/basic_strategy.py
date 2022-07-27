@@ -151,9 +151,9 @@ class BasicStrategy(Player):
         if self.chips >= minimum_bet:
             print(f'{self.name}; Chips: {self.chips}; Place bet: {minimum_bet}')
             sleep(self.sleep_int)
-            self.total_bet = 0
+            self.total_bet = minimum_bet
+            self.total_reward = 0
             self.hands.append(Hand(bet=minimum_bet))
-            self.total_bet += minimum_bet
             self.chips -= minimum_bet
             self.rounds += 1
             self._your_turn = True
@@ -172,6 +172,7 @@ class BasicStrategy(Player):
 
     def surrender(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
+            self.total_reward += hand.bet // 2
             self.chips += hand.bet // 2
             self.hands.remove(hand)
             self.insurance = 0
