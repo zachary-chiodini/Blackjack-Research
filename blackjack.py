@@ -207,6 +207,10 @@ class Player:
         self.insurance = 0
         return None
 
+    def bust(self, hand: Hand) -> None:
+        self.lost(hand)
+        return None
+
     def call(self, hand: Hand) -> str:
         input_ = str(input(f'Chips: {self.chips}; Bet: {self.total_bet}; Your turn: '))
         if input_ not in self.choices:
@@ -528,7 +532,7 @@ class Table:
                     while player.your_turn():
                         self.dealer.call_on(player, hand)
                         if hand.bust():
-                            player.lost(hand)
+                            player.bust(hand)
                             self.dealer.discard(hand)
             self.dealer.face_hole_card()
             if not any(player.hands for player in current_players):
