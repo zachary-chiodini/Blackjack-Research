@@ -1,7 +1,7 @@
 from numpy import argmax, array, empty, hstack, vstack, max as npmax, min as npmin
 
 from ai.neural_network import Input_Matrix, MultilayerPerceptron, NDArray, NeuralNetwork, Output_Matrix
-from blackjack import Card, Hand, List, Player, Table
+from blackjack import Card, Hand, Player, Table
 from blackjack_robots.card_counter import BasicStrategy, sleep
 
 
