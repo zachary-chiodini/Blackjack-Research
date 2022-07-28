@@ -67,6 +67,6 @@ class TestPlayer(ReinforcementLearner):
 
 
 if __name__ == '__main__':
-    table = Table(players=2, decks=6, minimum_bet=50, penetration=0.75)
+    table = Table(players=1, decks=6, minimum_bet=50, penetration=0.75)
     table.players = [TestPlayer()]
     table.play()
