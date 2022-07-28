@@ -17,6 +17,7 @@ class TestPlayer(ReinforcementLearner):
             price = self.total_bet // 2
             if self.chips >= price:
                 self.chips -= price
+                self.total_reward = -price
                 self.total_bet += price
                 self.insurance = price
                 return None

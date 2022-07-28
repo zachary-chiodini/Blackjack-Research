@@ -38,6 +38,7 @@ class ReinforcementLearner(BasicStrategy):
             if self.chips >= price:
                 self.chips -= price
                 self.total_bet += price
+                self.total_reward = -price
                 self.insurance = price
                 return None
         self.insurance = 0
@@ -130,7 +131,7 @@ class ReinforcementLearner(BasicStrategy):
 
     def use_insurance(self, hand: Hand) -> None:
         self.reward_path_array[-1] = self.insurance + hand.bet
-        self.total_reward += self.insurance + hand.bet
+        self.total_reward += (2 * self.insurance) + hand.bet
         self.chips += self.insurance + hand.bet
         print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
