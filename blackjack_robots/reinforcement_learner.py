@@ -167,7 +167,7 @@ class ReinforcementLearner(BasicStrategy):
 
     def _reset(self) -> None:
         if not self.hands:
-            slice_ = self.reward_path_array[0: self.episode_index + 1]
+            slice_ = self.reward_path_array[self.episode_index:]
             slice_[slice_ == 0] = self.total_reward
         return None
 
