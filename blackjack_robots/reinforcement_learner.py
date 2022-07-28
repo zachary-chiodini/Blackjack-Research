@@ -2,7 +2,7 @@ from numpy import argmax, array, empty, hstack, vstack, max as npmax, min as npm
 
 from ai.neural_network import Input_Matrix, MultilayerPerceptron, NDArray, NeuralNetwork, Output_Matrix
 from blackjack import Card, Hand, Player, Table
-from blackjack_robots.card_counter import BasicStrategy, sleep
+from blackjack_robots.basic_strategy import BasicStrategy, sleep
 
 
 Blackjack_State = NDArray[int]  # NDArray(Pair, Ace, Hand_Min, Hand_Max, Upcard, Insurance)
@@ -115,6 +115,16 @@ class ReinforcementLearner(BasicStrategy):
         self._your_turn = False
         self._reset()
         return None
+
+    def split(self, hand: Hand) -> str:
+        if self.chips >= hand.bet and hand.pair():
+            self.chips -= hand.bet
+            self.total_bet += hand.bet
+            self.insurance = 0
+            self._your_turn = False
+            return 'y'
+        self.stand()
+        return 's'
 
     def surrender(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
