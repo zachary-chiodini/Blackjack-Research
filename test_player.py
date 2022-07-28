@@ -37,6 +37,7 @@ class TestPlayer(ReinforcementLearner):
             if bet < minimum_bet:
                 return wrong_input_response()
             if bet <= self.chips:
+                self.episode_index = len(self.state_path_matrix)
                 self.total_bet = bet
                 self.total_reward = 0
                 self.hands.append(Hand(bet=bet))
