@@ -1,30 +1,28 @@
 from random import randint, uniform
 from time import sleep
-from typing import Callable, Dict, Text, List, Tuple, Union
+from typing import Any, Callable, Dict, Text, List, Tuple, Union
 
-from nptyping import Int8, NDArray, Shape
-from numpy import any as npany, array, all as npall, max as npmax, min as npmin
+from numpy import any as npany, array, all as npall, max as npmax, min as npmin, ndarray
 
 
-IntArray = NDArray[Shape['*'], Int8]
+IntArray = ndarray[Any, int]
 
 
 class Card:
-    rank_map = {'A': array([11, 1], dtype=Int8), 'K': Int8(10), 'Q': Int8(10),
-                'J': Int8(10), '10': Int8(10), '9': Int8(9), '8': Int8(8), '7': Int8(7),
-                '6': Int8(6), '5': Int8(5), '4': Int8(4), '3': Int8(3), '2': Int8(2)}
+    rank_map = {'A': array([11, 1], dtype=int), 'K': 10, 'Q': 10, 'J': 10, '10': 10,
+                '9': 9, '8': 8, '7': 7, '6': 6, '5': 5, '4': 4, '3': 3, '2': 2}
 
     def __init__(self, rank: str, suit: Text, face_up=False):
         self.rank = rank
         self.suit = suit
         self.face_up = face_up
         self.ace = rank == 'A'
-        self._value: Union[IntArray, Int8] = self.rank_map[rank]
+        self._value: Union[IntArray, int] = self.rank_map[rank]
 
-    def get_value(self) -> Union[IntArray, Int8]:
+    def get_value(self) -> Union[IntArray, int]:
         if self.face_up:
             return self._value
-        return Int8(0)
+        return 0
 
     def show(self) -> Tuple[str, str]:
         if self.face_up:
@@ -36,7 +34,7 @@ class Hand:
 
     def __init__(self, *args: Card, bet: int = 0):
         self.cards: List[Card] = list(args)
-        self.value: Union[IntArray, Int8] = Int8(0)
+        self.value: Union[IntArray, int] = 0
         self._add_values(*args)
         self.bet = bet
 
@@ -54,10 +52,10 @@ class Hand:
         return True
 
     def blackjack(self) -> bool:
-        return npany(self.value == Int8(21))
+        return npany(self.value == 21)
 
     def bust(self) -> bool:
-        return npall(self.value > Int8(21))
+        return npall(self.value > 21)
 
     def has_ace(self) -> bool:
         return npany([card.ace for card in self.cards])
@@ -69,7 +67,7 @@ class Hand:
         return False
 
     def recalc_value(self) -> None:
-        self.value = Int8(0)
+        self.value = 0
         self._add_values(*self.cards)
         return None
 
@@ -93,8 +91,8 @@ class Hand:
 
     def _add_values(self, *args: Card) -> None:
         for card in args:
-            if card.ace and isinstance(self.value, IntArray):
-                self.value += Int8(1)
+            if card.ace and isinstance(self.value, ndarray):
+                self.value += 1
             else:
                 self.value += card.get_value()
         return None
@@ -188,7 +186,6 @@ class Player:
         self.chips = chips
         self.rounds = 0
         self.total_bet = 0
-        self.total_reward = 0
         self.insurance = 0
         self.dealer_ref: Union[Dealer, None] = None   # This is for robot players to use.
         self.choices = {'h': self.hit, 's': self.stand, 'd': self.double,
@@ -243,7 +240,6 @@ class Player:
         return 's'
 
     def lost(self, hand: Hand) -> None:
-        self.total_reward -= hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'lost')
         self.insurance = 0
@@ -265,7 +261,6 @@ class Player:
                 return wrong_input_response()
             if bet <= self.chips:
                 self.total_bet = bet
-                self.total_reward = 0
                 self.hands.append(Hand(bet=bet))
                 self.chips -= bet
                 self.rounds += 1
@@ -274,7 +269,6 @@ class Player:
         return False
 
     def push(self, hand: Hand) -> None:
-        self.total_reward += hand.bet
         self.chips += hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'tied')
@@ -312,7 +306,6 @@ class Player:
 
     def surrender(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
-            self.total_reward += hand.bet // 2
             self.chips += hand.bet // 2
             self.hands.remove(hand)
             self.insurance = 0
@@ -323,7 +316,6 @@ class Player:
         return self.call(hand)
 
     def use_insurance(self, hand: Hand) -> None:
-        self.total_reward += self.insurance + hand.bet
         self.chips += self.insurance + hand.bet
         print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
@@ -335,7 +327,6 @@ class Player:
         return None
 
     def won(self, hand: Hand) -> None:
-        self.total_reward += 2 * hand.bet
         self.chips += 2 * hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'won')
@@ -344,7 +335,6 @@ class Player:
         return None
 
     def won_blackjack(self, hand: Hand) -> None:
-        self.total_reward += int(hand.bet * 2.5)
         self.chips += int(hand.bet * 2.5)
         self.hands.remove(hand)
         self.show_score(hand, 'won', blackjack=True)

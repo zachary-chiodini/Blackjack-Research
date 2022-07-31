@@ -2,7 +2,6 @@ from numbers import Real
 from time import time
 from typing import Any, Dict, List, Tuple
 
-from numpy.typing import NDArray
 import numpy as np
 
 
@@ -13,47 +12,52 @@ np.seterr(over='raise')
 #     | x2,1 x2,2 ... x2,n |
 #     |  ..   ..  ...  ..  |
 #     | xm,1 xm,2 ... xm,n |
-# m: number of examples
-# n: number of features
-Input_Matrix = NDArray[Real]
+NumberOfExamples = Any  # m
+NumberOfFeatures = Any  # n
+InputMatrix = np.ndarray[(NumberOfExamples, NumberOfFeatures), Real]
 
-# Target Matrix
+# Target Matrix (True Values)
 # Y = | y1,1 y1,2 ... y1,k |
 #     | y2,1 y2,2 ... y2,k |
 #     |  ..   ..  ...  ..  |
 #     | ym,1 ym,2 ... ym,k |
-# m: number of examples
-# k: number of variables (with true values)
-Target_Matrix = NDArray[Real]
+NumberOfTargets = Any
+TargetMatrix = np.ndarray[(NumberOfExamples, NumberOfTargets), Real]
 
-# Output Matrix
-# Y = | y1,1 y1,2 ... y1,k |
-#     | y2,1 y2,2 ... y2,k |
-#     |  ..   ..  ...  ..  |
-#     | ym,1 ym,2 ... ym,k |
-# m: number of examples
-# k: number of variables (with computed values)
-Output_Matrix = NDArray[Real]
+# Output Matrix (Computed Values)
+# Y = | y'1,1 y'1,2 ... y'1,k |
+#     | y'2,1 y'2,2 ... y'2,k |
+#     |   ..    ..  ...   ..  |
+#     | y'm,1 y'm,2 ... y'm,k |
+OutputMatrix = np.ndarray[(NumberOfExamples, NumberOfTargets), Real]
+
+# Gradient Matrix
+# R = | y"1,1 y"1,2 ... y"1,k |
+#     | y"2,1 y"2,2 ... y"2,k |
+#     |   ..    ..  ...   ..  |
+#     | y"m,1 y"m,2 ... y"m,k |
+GradientMatrix = np.ndarray[(NumberOfExamples, NumberOfTargets), Real]
 
 # Perceptron
 # Pk' = | w1,k' |
 #       | w2,k' |
-#       |  ..  |
+#       |  ..   |
 #       | wj,k' |
 # Bias
 # bk' = | w0,k' |
 # k': number of the perceptron
-# j: number of inputs to node k'
+NumberOfInputs = Any
 Bias, Weight = Real, Real
-Perceptron = NDArray[Weight]
+Perceptron = np.ndarray[(1, NumberOfInputs), Weight]
 
 # Layer
 # Weights
 # W = | P1, P2, ..., Pk' |
 # Biases
 # Bk = | b1, b2, .., bk' |
-Weights = NDArray[Weight]
-Biases = NDArray[Bias]
+NumberOfPerceptrons = Any
+Weights = np.ndarray[(NumberOfPerceptrons, NumberOfInputs), Weight]
+Biases = np.ndarray[NumberOfPerceptrons, Bias]
 
 Layer_Number = int
 Network_Weights = Dict[Layer_Number, Weights]
@@ -73,25 +77,25 @@ class NeuralNetwork:
         self._perceptrons_per_hidden_layer = perceptrons_per_hidden_layer
 
     @staticmethod
-    def activation(x: NDArray[Real]) -> NDArray[Real]:
+    def activation(x: np.ndarray[Any, Real]) -> np.ndarray[Any, Real]:
         """This is the logistic function with amplitude and steepness of one."""
         return 1.0 / (1.0 + np.exp(-x))
 
     @staticmethod
-    def error(A: Output_Matrix, Y: Target_Matrix) -> Real:
-        """This is the sum of squared residuals."""
-        return np.square(A - Y).sum()
-
-    @staticmethod
-    def derivative(x: NDArray[Real]) -> NDArray[Real]:
+    def derivative(x: np.ndarray[Any, Real]) -> np.ndarray[Any, Real]:
         """This is the first derivative of the logistic function with amplitude and steepness of one."""
         return np.exp(-x) / np.square(1.0 + np.exp(-x))
 
-    def forward_propagation(self, L: Input_Matrix) -> Output_Matrix:
+    @staticmethod
+    def error(A: OutputMatrix, Y: TargetMatrix) -> Real:
+        """This is the sum of squared residuals."""
+        return np.square(A - Y).sum()
+
+    def forward_propagation(self, L: InputMatrix) -> OutputMatrix:
         raise NotImplementedError('The method "forward_propagation" is not implemented.')
 
     @staticmethod
-    def grad(A: Output_Matrix, Y: Target_Matrix) -> NDArray[Real]:
+    def grad(A: OutputMatrix, Y: TargetMatrix) -> GradientMatrix:
         """This is the gradient of the sum of squared residuals with respect to the output of the output layer."""
         return 2 * (A - Y)
 
@@ -104,17 +108,17 @@ class MultilayerPerceptron(NeuralNetwork):
     def __init__(self, perceptrons_per_hidden_layer: List[int] = []):
         super().__init__(perceptrons_per_hidden_layer)
 
-    def backpropagate(self, grad_z: NDArray[Real], A: Dict, Z: Dict, current_layer: int) -> Tuple:
+    def backpropagate(self, grad_z: np.ndarray, A: Dict, Z: Dict, current_layer: int) -> Tuple:
         # This is the gradient with respect to the weights "w" of the layer.
         grad_w = np.matmul(A[current_layer].T, grad_z)  # len( A ) = len( Z ) + 1
         # This is the gradient with respect to the biases "b" of the layer.
         grad_b = grad_z.sum(axis=0)
-        if current_layer > 0:  # There is no weighted input for the input or zeroth layer.
+        if current_layer > 0:  # There is no weighted input for the zeroth layer.
             # This is the gradient with respect to the weighted input "z" of the layer.
             grad_z = self.derivative(Z[current_layer]) * np.matmul(grad_z, self.weights[current_layer].T)
         return grad_z, grad_w, grad_b
 
-    def forward_propagation(self, L: Input_Matrix) -> Output_Matrix:
+    def forward_propagation(self, L: InputMatrix) -> OutputMatrix:
         for w, b in zip(self.weights.values(), self.biases.values()):
             L = self.activation(np.matmul(L, w) + b)
         return L
@@ -136,7 +140,7 @@ class MultilayerPerceptron(NeuralNetwork):
         self.initiated = True
         return None
 
-    def train(self, X: Input_Matrix, Y: Target_Matrix, batch_size=10, convergence=0.0,
+    def train(self, X: InputMatrix, Y: TargetMatrix, batch_size=10, convergence=0.0,
               learning_rate=1.0, max_epoch=10, max_time_seconds=60) -> None:
         """This uses the Stochastic Gradient Descent training algorithm."""
         epoch = 1
@@ -178,7 +182,7 @@ class MultilayerPerceptron(NeuralNetwork):
         self.score = self.error(final_output, Y)
         return None
 
-    def _forward_propagation(self, X: Input_Matrix, A_ref: Dict, Z_ref: Dict) -> Output_Matrix:
+    def _forward_propagation(self, X: InputMatrix, A_ref: Dict, Z_ref: Dict) -> OutputMatrix:
         """
         This method is the same as the other forward propagation method,
         except it populates two containers, A and Z,
@@ -195,22 +199,3 @@ class MultilayerPerceptron(NeuralNetwork):
             A_ref[current_layer] = self.activation(Z_ref[current_layer])
             current_layer += 1
         return A_ref[current_layer - 1]
-
-
-class Policy(NeuralNetwork):
-
-    def __init__(self, perceptrons_per_hidden_layer: List[int] = []):
-        super().__init__(perceptrons_per_hidden_layer)
-
-    @staticmethod
-    def error(A: Output_Matrix, Y: Target_Matrix) -> Real:
-        """This is the sum of squared residuals."""
-        return np.square(A - Y).sum()
-
-    def forward_propagation(self, L: Input_Matrix) -> Output_Matrix:
-        raise NotImplementedError('The method "forward_propagation" is not implemented.')
-
-    @staticmethod
-    def grad(A: Output_Matrix, Y: Target_Matrix) -> NDArray[Real]:
-        """This is the gradient of the sum of squared residuals with respect to the output of the output layer."""
-        return 2 * (A - Y)

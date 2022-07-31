@@ -1,4 +1,8 @@
-from blackjack import Card, Hand, npmax, npmin, Player, sleep, Table
+from time import sleep
+
+from numpy import max as npmax, min as npmin
+
+from blackjack import Card, Hand, Player, Table
 
 
 class BasicStrategy(Player):
@@ -152,7 +156,6 @@ class BasicStrategy(Player):
             print(f'{self.name}; Chips: {self.chips}; Place bet: {minimum_bet}')
             sleep(self.sleep_int)
             self.total_bet = minimum_bet
-            self.total_reward = 0
             self.hands.append(Hand(bet=minimum_bet))
             self.chips -= minimum_bet
             self.rounds += 1
@@ -172,7 +175,6 @@ class BasicStrategy(Player):
 
     def surrender(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
-            self.total_reward += hand.bet // 2
             self.chips += hand.bet // 2
             self.hands.remove(hand)
             self.insurance = 0

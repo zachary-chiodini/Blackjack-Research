@@ -1,5 +1,10 @@
+from time import sleep
+
+from numpy import hstack
+
 from ai.neural_network import NeuralNetwork, MultilayerPerceptron
-from blackjack_robots.reinforcement_learner import Card, Hand, ReinforcementLearner, sleep, Table
+from blackjack import Card, Hand, Table
+from blackjack_robots.reinforcement_learner import Node, ReinforcementLearner
 
 
 class TestPlayer(ReinforcementLearner):
@@ -17,12 +22,21 @@ class TestPlayer(ReinforcementLearner):
             price = self.total_bet // 2
             if self.chips >= price:
                 self.chips -= price
-                self.total_reward = -price
                 self.total_bet += price
                 self.insurance = price
                 return None
         self.insurance = 0
         return None
+
+    def call(self, hand: Hand) -> str:
+        up_card = self.dealer_ref.hand.cards[1]
+        choice = self.decision(hand, up_card)
+        input_ = str(input(f'Chips: {self.chips}; Bet: {self.total_bet}; Your turn: '))
+        if input_ not in self.choices:
+            print(f'You must choose {self.choices.keys()}.')
+            sleep(self.sleep_int)
+            return self.call(hand)
+        return self.choices[input_](hand)
 
     def place_bet(self, minimum_bet: int) -> bool:
         def wrong_input_response() -> bool:
@@ -40,7 +54,6 @@ class TestPlayer(ReinforcementLearner):
             if bet <= self.chips:
                 self.episode_index = len(self.state_path_matrix)
                 self.total_bet = bet
-                self.total_reward = 0
                 self.hands.append(Hand(bet=bet))
                 self.chips -= bet
                 self.rounds += 1
@@ -48,23 +61,28 @@ class TestPlayer(ReinforcementLearner):
                 return True
         return False
 
-    def call(self, hand: Hand) -> str:
-        up_card = self.dealer_ref.hand.cards[1]
-        choice = self.decision(hand, up_card)
-        input_ = str(input(f'Chips: {self.chips}; Bet: {self.total_bet}; Your turn: '))
-        if input_ not in self.choices:
-            print(f'You must choose {self.choices.keys()}.')
-            sleep(self.sleep_int)
-            return self.call(hand)
-        return self.choices[input_](hand)
-
     def _reset(self) -> None:
-        if not self.hands:
-            slice_ = self.reward_path_array[self.episode_index:]
-            slice_[slice_ == 0] = self.total_reward
+
+        def recurse(node: Node) -> None:
+            total_reward = node.calc_reward()
+            self.reward_path_array = hstack([self.reward_path_array, total_reward])
+            for child in node.children:
+                recurse(child)
+            return None
+
+        # The top-most node is empty.
+        root_node_container = self.root_node.children
+        if not self.hands and root_node_container:
+            root_node = root_node_container[0]
+            root_node.reward -= self.insurance
+            recurse(root_node)
+            self.current_node = Node()
+            self.root_node = self.current_node
             print(self.state_path_matrix)
             print(self.action_path_matrix)
             print(self.reward_path_array)
+        self.insurance = 0
+        self._your_turn = False
         return None
 
 
