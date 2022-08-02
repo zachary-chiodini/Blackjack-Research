@@ -64,18 +64,26 @@ class TestPlayer(ReinforcementLearner):
     def _reset(self) -> None:
 
         def recurse(node: Node) -> None:
-            total_reward = node.calc_reward()
-            self.reward_path_array = hstack([self.reward_path_array, total_reward])
+            # Leaf nodes are empty.
+            if node.state.any():
+                total_reward = node.calc_reward()
+                self.reward_path_array = hstack([self.reward_path_array, total_reward])
             for child in node.children:
                 recurse(child)
             return None
 
-        # The top-most node is empty.
-        root_node_container = self.root_node.children
-        if not self.hands and root_node_container:
-            root_node = root_node_container[0]
-            root_node.reward -= self.insurance
-            recurse(root_node)
+        if not self.hands:
+            if self.root_node.state.any():
+                # When insurance is used, the root node becomes a distinct episode.
+                if self.insurance:
+                    # This subtracts the calculated reward from the root node during recurse.
+                    # The root node is always -25 if insurance is used.
+                    self.root_node.reward = -self.root_node.calc_reward() - self.insurance
+                if self.root_node.reward:
+                    # This also subtracts the calculated reward from the root node during recurse.
+                    # The root node is always +25 if asked for insurance (See "ask_for_insurance" method).
+                    self.root_node.reward -= self.root_node.calc_reward()
+                recurse(self.root_node)
             self.current_node = Node()
             self.root_node = self.current_node
             print(self.state_path_matrix)

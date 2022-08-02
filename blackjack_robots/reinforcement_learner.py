@@ -17,10 +17,12 @@ class Node:
     def __init__(self, state: State = zeros(shape=(6,), dtype=int),
                  action: Action = zeros(shape=(5,), dtype=int),
                  reward: int = 0,
+                 parent: Optional['Node'] = None,
                  children: Optional[List['Node']] = None):
         self.state = state
         self.action = action
         self.reward = reward
+        self.parent = parent
         if children:
             self.children = children
         else:
@@ -37,8 +39,7 @@ class Node:
         """
         # This is a depth first search for rewards.
         def recurse(node: 'Node') -> None:
-            if node.reward:
-                rewards.add(node.reward)
+            rewards.add(node.reward)
             for child in node.children:
                 recurse(child)
             return None
@@ -46,6 +47,12 @@ class Node:
         rewards = set()
         recurse(self)
         return sum(rewards)
+
+    def get_root_node(self) -> 'Node':
+        node = self
+        while node.parent:
+            node = node.parent
+        return node
 
 
 class ReinforcementLearner(BasicStrategy):
@@ -63,7 +70,7 @@ class ReinforcementLearner(BasicStrategy):
         self.episode_index = 0
         self.current_node = Node()
         self.root_node = self.current_node
-        self.split_queue: List[Node] = []  # This is a LIFO queue.
+        self.split_queue: List[Node] = []  # This is a FIFO queue.
         self.reward_queue: List[Node] = []  # This is a FIFO queue.
         self.state_path_matrix: InputMatrix = empty(shape=(0, self.num_features), dtype=int)
         self.action_path_matrix: OutputMatrix = empty(shape=(0, self.num_targets), dtype=float)
@@ -77,19 +84,20 @@ class ReinforcementLearner(BasicStrategy):
         hand = self.hands[0]
         up_card = Card('A', '', face_up=True)
         choice = self.decision(hand, up_card, insurance=1)
+        price = self.total_bet // 2
         if choice == 'h':
-            price = self.total_bet // 2
             if self.chips >= price:
                 self.chips -= price
                 self.total_bet += price
                 self.insurance = price
                 return None
+        self.root_node.reward = price
         return None
 
     def bust(self, hand: Hand) -> None:
         self.current_node.reward = -hand.bet
         if self.split_queue:
-            self.current_node = self.split_queue.pop(-1)
+            self.current_node = self.split_queue.pop(0)
         self.chips -= hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'lost')
@@ -106,11 +114,25 @@ class ReinforcementLearner(BasicStrategy):
         action: Action = self.policy.forward_propagation(array([state]))
         self.state_path_matrix = vstack([self.state_path_matrix, state])
         self.action_path_matrix = vstack([self.action_path_matrix, action])
-        child = Node(state, action)
+        self.current_node.state, self.current_node.action = state, action
+        child = Node(parent=self.current_node)
         self.current_node.children.append(child)
         self.current_node = child
         action_index = argmax(action, axis=1).item()
         return self.actions[action_index]
+
+    def double(self, hand: Hand) -> str:
+        if len(hand.cards) == 2:
+            if self.chips >= hand.bet:
+                if self.split_queue:
+                    self.reward_queue.append(self.current_node)
+                    self.current_node = self.split_queue.pop(0)
+                self.chips -= hand.bet
+                self.total_bet += hand.bet
+                hand.bet += hand.bet
+                self._your_turn = False
+                return 'd'
+        return 'h'
 
     @staticmethod
     def get_current_state(hand: Hand, up_card: Card, insurance: int = 0) -> State:
@@ -160,10 +182,11 @@ class ReinforcementLearner(BasicStrategy):
 
     def split(self, hand: Hand) -> str:
         if self.chips >= hand.bet and hand.pair():
-            child1, child2 = Node(), Node()
-            self.split_queue.append(child2)
-            self.current_node.children.extend([child1, child2])
-            self.current_node = child1
+            split_node = self.current_node.parent
+            child1, child2 = Node(parent=split_node), Node(parent=split_node)
+            split_node.children = [child1, child2]
+            self.split_queue.extend([child1, child2])
+            self.current_node = self.split_queue.pop(0)
             self.chips -= hand.bet
             self.total_bet += hand.bet
             self._your_turn = False
@@ -174,7 +197,7 @@ class ReinforcementLearner(BasicStrategy):
     def stand(self, *args) -> str:
         if self.split_queue:
             self.reward_queue.append(self.current_node)
-            self.current_node = self.split_queue.pop(-1)
+            self.current_node = self.split_queue.pop(0)
         self._your_turn = False
         return 's'
 
@@ -182,7 +205,7 @@ class ReinforcementLearner(BasicStrategy):
         if len(hand.cards) == 2:
             self.current_node.reward = hand.bet // 2
             if self.split_queue:
-                self.current_node = self.split_queue.pop(-1)
+                self.current_node = self.split_queue.pop(0)
             self.chips += hand.bet // 2
             self.hands.remove(hand)
             self._reset()
@@ -217,7 +240,7 @@ class ReinforcementLearner(BasicStrategy):
     def won_blackjack(self, hand: Hand) -> None:
         self.current_node.reward = int(hand.bet * 2.5)
         if self.split_queue:
-            self.current_node = self.split_queue.pop(-1)
+            self.current_node = self.split_queue.pop(0)
         self.chips += int(hand.bet * 2.5)
         self.hands.remove(hand)
         self.show_score(hand, 'won', blackjack=True)
@@ -227,20 +250,28 @@ class ReinforcementLearner(BasicStrategy):
     def _reset(self) -> None:
 
         def recurse(node: Node) -> None:
-            total_reward = node.calc_reward()
-            self.reward_path_array = hstack([self.reward_path_array, total_reward])
+            # Leaf nodes are empty.
+            if node.state.any():
+                total_reward = node.calc_reward()
+                self.reward_path_array = hstack([self.reward_path_array, total_reward])
             for child in node.children:
                 recurse(child)
             return None
+
         if not self.hands:
-            # The top-most node is empty.
-            root_node_container = self.root_node.children
-            if root_node_container:
-                root_node = root_node_container[0]
-                root_node.reward -= self.insurance
-                recurse(root_node)
-                self.current_node = Node()
-                self.root_node = self.current_node
+            if self.root_node.state.any():
+                # When insurance is used, the root node becomes a distinct episode.
+                if self.insurance:
+                    # This subtracts the calculated reward from the root node during recurse.
+                    # The root node is always -25 if insurance is used.
+                    self.root_node.reward = -self.root_node.calc_reward() - self.insurance
+                if self.root_node.reward:
+                    # This also subtracts the calculated reward from the root node during recurse.
+                    # The root node is always +25 if asked for insurance (See "ask_for_insurance" method).
+                    self.root_node.reward -= self.root_node.calc_reward()
+                recurse(self.root_node)
+            self.current_node = Node()
+            self.root_node = self.current_node
         self.insurance = 0
         self._your_turn = False
         return None
