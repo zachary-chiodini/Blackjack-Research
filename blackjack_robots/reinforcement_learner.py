@@ -214,7 +214,9 @@ class ReinforcementLearner(BasicStrategy):
         return 's'
 
     def use_insurance(self, hand: Hand) -> None:
-        self.current_node.reward = self.insurance + hand.bet
+        # If insurance is bought and used,
+        # the root node has a reward of bet + insurance = +75.
+        self.root_node.reward = self.insurance + hand.bet
         self.chips += self.insurance + hand.bet
         print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
         print(f'You receive {hand.bet} chips insured with {self.insurance} chips insurance.')
@@ -260,14 +262,15 @@ class ReinforcementLearner(BasicStrategy):
 
         if not self.hands:
             if self.root_node.state.any():
-                # When insurance is used, the root node becomes a distinct episode.
+                # If insurance is bought and not used,
+                # the root node has a reward of -insurance = -25.
                 if self.insurance:
                     # This subtracts the calculated reward from the root node during recurse.
-                    # The root node is always -25 if insurance is used.
-                    self.root_node.reward = -self.root_node.calc_reward() - self.insurance
-                if self.root_node.reward:
-                    # This also subtracts the calculated reward from the root node during recurse.
-                    # The root node is always +25 if asked for insurance (See "ask_for_insurance" method).
+                    self.root_node.reward = -self.insurance - self.root_node.calc_reward()
+                # If insurance is not bought and dealer does not have blackjack,
+                # the root node has a reward of +insurance = +25.
+                elif self.root_node.reward:
+                    # This subtracts the calculated reward from the root node during recurse.
                     self.root_node.reward -= self.root_node.calc_reward()
                 recurse(self.root_node)
             self.current_node = Node()
