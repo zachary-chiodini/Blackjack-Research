@@ -74,14 +74,15 @@ class TestPlayer(ReinforcementLearner):
 
         if not self.hands:
             if self.root_node.state.any():
-                # When insurance is used, the root node becomes a distinct episode.
+                # If insurance is bought and not used,
+                # the root node has a reward of -insurance = -25.
                 if self.insurance:
                     # This subtracts the calculated reward from the root node during recurse.
-                    # The root node is always -25 if insurance is used.
-                    self.root_node.reward = -self.root_node.calc_reward() - self.insurance
-                if self.root_node.reward:
-                    # This also subtracts the calculated reward from the root node during recurse.
-                    # The root node is always +25 if asked for insurance (See "ask_for_insurance" method).
+                    self.root_node.reward = -self.insurance - self.root_node.calc_reward()
+                # If insurance is not bought and dealer does not have blackjack,
+                # the root node has a reward of +insurance = +25.
+                elif self.root_node.reward:
+                    # This subtracts the calculated reward from the root node during recurse.
                     self.root_node.reward -= self.root_node.calc_reward()
                 recurse(self.root_node)
             self.current_node = Node()
