@@ -12,20 +12,21 @@ class TestPlayer(ReinforcementLearner):
     def __init__(self, neural_network: NeuralNetwork = MultilayerPerceptron([30])):
         super().__init__(neural_network)
         self.name = 'Test Player'
+        self.nodes = []
 
     def ask_for_insurance(self) -> None:
         hand = self.hands[0]
         up_card = Card('A', '', face_up=True)
         choice = self.decision(hand, up_card, insurance=1)
         input_ = str(input(f'{self.name}; Chips: {self.chips}; Insurance? (y/n) '))
+        price = hand.bet // 2
         if input_.lower().replace('es', '').strip() == 'y' or input_.strip() == '1':
-            price = self.total_bet // 2
             if self.chips >= price:
                 self.chips -= price
                 self.total_bet += price
                 self.insurance = price
                 return None
-        self.insurance = 0
+        self.root_node.reward = price
         return None
 
     def call(self, hand: Hand) -> str:
@@ -85,17 +86,31 @@ class TestPlayer(ReinforcementLearner):
                     # This subtracts the calculated reward from the root node during recurse.
                     self.root_node.reward -= self.root_node.calc_reward()
                 recurse(self.root_node)
+            self.nodes.append(self.root_node)
             self.current_node = Node()
             self.root_node = self.current_node
+            self.insurance = 0
             print(self.state_path_matrix)
             print(self.action_path_matrix)
             print(self.reward_path_array)
-        self.insurance = 0
+        if self.split_queue:
+            self.current_node = self.split_queue.pop(0)
         self._your_turn = False
         return None
 
 
 if __name__ == '__main__':
     table = Table(players=1, decks=6, minimum_bet=50, penetration=0.75)
-    table.players = [TestPlayer()]
+    player = TestPlayer()
+    table.players = [player]
     table.play()
+
+    def recurse(node: Node, i=1) -> None:
+        print(i, node.state, node.action, node.reward)
+        for child in node.children:
+            i += 1
+            recurse(child, i)
+        return None
+
+    for node_ in player.nodes:
+        recurse(node_)

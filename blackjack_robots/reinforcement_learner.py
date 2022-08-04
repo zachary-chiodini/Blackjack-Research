@@ -37,6 +37,8 @@ class Node:
             the calculated reward r' is given by
             r'(n) = sum(ri) from i = n (node number) to i = c (number of children)
         """
+        rewards = set()
+
         # This is a depth first search for rewards.
         def recurse(node: 'Node') -> None:
             rewards.add(node.reward)
@@ -44,7 +46,6 @@ class Node:
                 recurse(child)
             return None
 
-        rewards = set()
         recurse(self)
         return sum(rewards)
 
@@ -84,7 +85,7 @@ class ReinforcementLearner(BasicStrategy):
         hand = self.hands[0]
         up_card = Card('A', '', face_up=True)
         choice = self.decision(hand, up_card, insurance=1)
-        price = self.total_bet // 2
+        price = hand.bet // 2
         if choice == 'h':
             if self.chips >= price:
                 self.chips -= price
@@ -96,9 +97,6 @@ class ReinforcementLearner(BasicStrategy):
 
     def bust(self, hand: Hand) -> None:
         self.current_node.reward = -hand.bet
-        if self.split_queue:
-            self.current_node = self.split_queue.pop(0)
-        self.chips -= hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'lost')
         self._reset()
@@ -114,7 +112,7 @@ class ReinforcementLearner(BasicStrategy):
         action: Action = self.policy.forward_propagation(array([state]))
         self.state_path_matrix = vstack([self.state_path_matrix, state])
         self.action_path_matrix = vstack([self.action_path_matrix, action])
-        self.current_node.state, self.current_node.action = state, action
+        self.current_node.state, self.current_node.action = state, action.flatten()
         child = Node(parent=self.current_node)
         self.current_node.children.append(child)
         self.current_node = child
@@ -124,13 +122,11 @@ class ReinforcementLearner(BasicStrategy):
     def double(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
             if self.chips >= hand.bet:
-                if self.split_queue:
-                    self.reward_queue.append(self.current_node)
-                    self.current_node = self.split_queue.pop(0)
+                self.reward_queue.append(self.current_node)
                 self.chips -= hand.bet
                 self.total_bet += hand.bet
                 hand.bet += hand.bet
-                self._your_turn = False
+                self._reset()
                 return 'd'
         return 'h'
 
@@ -149,7 +145,6 @@ class ReinforcementLearner(BasicStrategy):
             node.reward = -hand.bet
         else:
             self.current_node.reward = -hand.bet
-        self.chips -= hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'lost')
         self._reset()
@@ -186,26 +181,21 @@ class ReinforcementLearner(BasicStrategy):
             child1, child2 = Node(parent=split_node), Node(parent=split_node)
             split_node.children = [child1, child2]
             self.split_queue.extend([child1, child2])
-            self.current_node = self.split_queue.pop(0)
             self.chips -= hand.bet
             self.total_bet += hand.bet
-            self._your_turn = False
+            self._reset()
             return 'y'
         self.stand()
         return 's'
 
     def stand(self, *args) -> str:
-        if self.split_queue:
-            self.reward_queue.append(self.current_node)
-            self.current_node = self.split_queue.pop(0)
-        self._your_turn = False
+        self.reward_queue.append(self.current_node)
+        self._reset()
         return 's'
 
     def surrender(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
             self.current_node.reward = hand.bet // 2
-            if self.split_queue:
-                self.current_node = self.split_queue.pop(0)
             self.chips += hand.bet // 2
             self.hands.remove(hand)
             self._reset()
@@ -241,8 +231,6 @@ class ReinforcementLearner(BasicStrategy):
 
     def won_blackjack(self, hand: Hand) -> None:
         self.current_node.reward = int(hand.bet * 2.5)
-        if self.split_queue:
-            self.current_node = self.split_queue.pop(0)
         self.chips += int(hand.bet * 2.5)
         self.hands.remove(hand)
         self.show_score(hand, 'won', blackjack=True)
@@ -275,7 +263,9 @@ class ReinforcementLearner(BasicStrategy):
                 recurse(self.root_node)
             self.current_node = Node()
             self.root_node = self.current_node
-        self.insurance = 0
+            self.insurance = 0
+        if self.split_queue:
+            self.current_node = self.split_queue.pop(0)
         self._your_turn = False
         return None
 
