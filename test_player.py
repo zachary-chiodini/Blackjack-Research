@@ -86,6 +86,7 @@ class TestPlayer(ReinforcementLearner):
                     else:
                         self.root_node.reward = self.insurance
                     self.asked_insurance = False
+            self.nodes.append(self.root_node)
             self.current_node = Node()
             self.root_node = self.current_node
             self.insurance = 0
