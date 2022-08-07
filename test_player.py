@@ -15,6 +15,7 @@ class TestPlayer(ReinforcementLearner):
         self.nodes = []
 
     def ask_for_insurance(self) -> None:
+        self.asked_insurance = True
         hand = self.hands[0]
         up_card = Card('A', '', face_up=True)
         choice = self.decision(hand, up_card, insurance=1)
@@ -26,7 +27,6 @@ class TestPlayer(ReinforcementLearner):
                 self.total_bet += price
                 self.insurance = price
                 return None
-        self.root_node.reward = price
         return None
 
     def call(self, hand: Hand) -> str:
@@ -75,18 +75,17 @@ class TestPlayer(ReinforcementLearner):
 
         if not self.hands:
             if self.root_node.state.any():
-                # If insurance is bought and not used,
-                # the root node has a reward of -insurance = -25.
-                if self.insurance:
-                    # This subtracts the calculated reward from the root node during recurse.
-                    self.root_node.reward = -self.insurance - self.root_node.calc_reward()
-                # If insurance is not bought and dealer does not have blackjack,
-                # the root node has a reward of +insurance = +25.
-                elif self.root_node.reward:
-                    # This subtracts the calculated reward from the root node during recurse.
-                    self.root_node.reward -= self.root_node.calc_reward()
                 recurse(self.root_node)
-            self.nodes.append(self.root_node)
+                if self.asked_insurance:
+                    # If insurance is bought and not used,
+                    # the root node has a reward of -insurance = -25.
+                    if self.insurance:
+                        self.root_node.reward = -self.insurance
+                    # If insurance is not bought and dealer does not have blackjack,
+                    # the root node has a reward of +insurance = +25.
+                    else:
+                        self.root_node.reward = self.insurance
+                    self.asked_insurance = False
             self.current_node = Node()
             self.root_node = self.current_node
             self.insurance = 0
@@ -105,11 +104,13 @@ if __name__ == '__main__':
     table.players = [player]
     table.play()
 
-    def recurse(node: Node, i=1) -> None:
-        print(i, node.state, node.action, node.reward)
+    def recurse(node: Node, parent_i=0, child_j=1) -> None:
+        print((parent_i, child_j), node.state, node.action, node.reward)
+        parent_i = child_j
+        child_j += 1
         for child in node.children:
-            i += 1
-            recurse(child, i)
+            recurse(child, parent_i, child_j)
+            child_j += 1
         return None
 
     for node_ in player.nodes:

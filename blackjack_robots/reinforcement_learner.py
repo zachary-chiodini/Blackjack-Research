@@ -62,6 +62,7 @@ class ReinforcementLearner(BasicStrategy):
         if not neural_network.instantiated:
             raise ValueError('The argument "neural_network" must be an instantiated "NeuralNetwork" class object.')
         super().__init__()
+        self.asked_insurance = False
         self.name = 'Reinforcement Learner'
         self.policy = neural_network
         self.actions = ['h', 's', 'd', 'y', 'sur']
@@ -82,6 +83,7 @@ class ReinforcementLearner(BasicStrategy):
         return argmax(prob_actions, axis=1)
 
     def ask_for_insurance(self) -> None:
+        self.asked_insurance = True
         hand = self.hands[0]
         up_card = Card('A', '', face_up=True)
         choice = self.decision(hand, up_card, insurance=1)
@@ -92,7 +94,6 @@ class ReinforcementLearner(BasicStrategy):
                 self.total_bet += price
                 self.insurance = price
                 return None
-        self.root_node.reward = price
         return None
 
     def bust(self, hand: Hand) -> None:
@@ -250,17 +251,17 @@ class ReinforcementLearner(BasicStrategy):
 
         if not self.hands:
             if self.root_node.state.any():
-                # If insurance is bought and not used,
-                # the root node has a reward of -insurance = -25.
-                if self.insurance:
-                    # This subtracts the calculated reward from the root node during recurse.
-                    self.root_node.reward = -self.insurance - self.root_node.calc_reward()
-                # If insurance is not bought and dealer does not have blackjack,
-                # the root node has a reward of +insurance = +25.
-                elif self.root_node.reward:
-                    # This subtracts the calculated reward from the root node during recurse.
-                    self.root_node.reward -= self.root_node.calc_reward()
                 recurse(self.root_node)
+                if self.asked_insurance:
+                    # If insurance is bought and not used,
+                    # the root node has a reward of -insurance = -25.
+                    if self.insurance:
+                        self.root_node.reward = -self.insurance
+                    # If insurance is not bought and dealer does not have blackjack,
+                    # the root node has a reward of +insurance = +25.
+                    else:
+                        self.root_node.reward = self.insurance
+                    self.asked_insurance = False
             self.current_node = Node()
             self.root_node = self.current_node
             self.insurance = 0
