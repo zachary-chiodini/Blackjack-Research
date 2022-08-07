@@ -81,18 +81,18 @@ class TestPlayer(ReinforcementLearner):
                     # the root node has a reward of -insurance = -25.
                     if self.insurance:
                         self.root_node.reward = -self.insurance
+                        self.insurance = 0
                     # If insurance is not bought and dealer does not have blackjack,
                     # the root node has a reward of +insurance = +25.
-                    else:
-                        self.root_node.reward = self.insurance
+                    elif self.root_node.children[0].state.any():
+                        self.root_node.reward = 25
                     self.asked_insurance = False
-            self.nodes.append(self.root_node)
-            self.current_node = Node()
-            self.root_node = self.current_node
-            self.insurance = 0
             print(self.state_path_matrix)
             print(self.action_path_matrix)
             print(self.reward_path_array)
+            self.nodes.append(self.root_node)
+            self.current_node = Node()
+            self.root_node = self.current_node
         if self.split_queue:
             self.current_node = self.split_queue.pop(0)
         self._your_turn = False
