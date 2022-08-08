@@ -37,11 +37,11 @@ class Node:
             the calculated reward r' is given by
             r'(n) = sum(ri) from i = n (node number) to i = c (number of children)
         """
-        rewards = set()
+        rewards = []
 
         # This is a depth first search for rewards.
         def recurse(node: 'Node') -> None:
-            rewards.add(node.reward)
+            rewards.append(node.reward)
             for child in node.children:
                 recurse(child)
             return None
