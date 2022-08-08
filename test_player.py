@@ -75,18 +75,18 @@ class TestPlayer(ReinforcementLearner):
 
         if not self.hands:
             if self.root_node.state.any():
-                recurse(self.root_node)
                 if self.asked_insurance:
                     # If insurance is bought and not used,
                     # the root node has a reward of -insurance = -25.
                     if self.insurance:
-                        self.root_node.reward = -self.insurance
+                        self.root_node.reward = -self.insurance - self.root_node.calc_reward()
                         self.insurance = 0
                     # If insurance is not bought and dealer does not have blackjack,
                     # the root node has a reward of +insurance = +25.
                     elif self.root_node.children[0].state.any():
-                        self.root_node.reward = 25
+                        self.root_node.reward = 25 - self.root_node.calc_reward()
                     self.asked_insurance = False
+                recurse(self.root_node)
             print(self.state_path_matrix)
             print(self.action_path_matrix)
             print(self.reward_path_array)
