@@ -111,8 +111,6 @@ class ReinforcementLearner(BasicStrategy):
     def decision(self, hand: Hand, up_card: Card, insurance: int = 0) -> str:
         state: State = self.get_current_state(hand, up_card, insurance)
         action: Action = self.policy.forward_propagation(array([state]))
-        self.state_path_matrix = vstack([self.state_path_matrix, state])
-        self.action_path_matrix = vstack([self.action_path_matrix, action])
         self.current_node.state, self.current_node.action = state, action.flatten()
         child = Node(parent=self.current_node)
         self.current_node.children.append(child)
@@ -244,6 +242,8 @@ class ReinforcementLearner(BasicStrategy):
             # Leaf nodes are empty.
             if node.state.any():
                 total_reward = node.calc_reward()
+                self.state_path_matrix = vstack([self.state_path_matrix, node.state])
+                self.action_path_matrix = vstack([self.action_path_matrix, node.action])
                 self.reward_path_array = hstack([self.reward_path_array, total_reward])
             for child in node.children:
                 recurse(child)

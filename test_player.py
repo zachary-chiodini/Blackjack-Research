@@ -1,6 +1,6 @@
 from time import sleep
 
-from numpy import hstack
+from numpy import hstack, vstack
 
 from ai.neural_network import NeuralNetwork, MultilayerPerceptron
 from blackjack import Card, Hand, Table
@@ -68,6 +68,8 @@ class TestPlayer(ReinforcementLearner):
             # Leaf nodes are empty.
             if node.state.any():
                 total_reward = node.calc_reward()
+                self.state_path_matrix = vstack([self.state_path_matrix, node.state])
+                self.action_path_matrix = vstack([self.action_path_matrix, node.action])
                 self.reward_path_array = hstack([self.reward_path_array, total_reward])
             for child in node.children:
                 recurse(child)
