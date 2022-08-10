@@ -1,6 +1,6 @@
 from time import sleep
 
-from numpy import hstack, vstack
+from numpy import hstack, inf, vstack
 
 from ai.neural_network import NeuralNetwork, MultilayerPerceptron
 from blackjack import Card, Hand, Table
@@ -104,6 +104,7 @@ class TestPlayer(ReinforcementLearner):
 if __name__ == '__main__':
     table = Table(players=1, decks=6, minimum_bet=50, penetration=0.75)
     player = TestPlayer()
+    player.chips = inf
     table.players = [player]
     table.play()
 
