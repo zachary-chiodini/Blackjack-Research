@@ -130,13 +130,8 @@ class BasicStrategy(Player):
             total = min_
         else:
             total = max_
-        if hand.has_ace():
-            if npmin(hand.value) > 9:
-                has_ace = False  # Soft strategy is no longer applicable.
-            else:
-                has_ace = True
-        else:
-            has_ace = False
+        # Soft strategy is applicable when the minimum hand value is greater than 9.
+        has_ace = hand.has_ace() and npmin(hand.value) > 9
         return self.decision_tree['pair'][hand.pair()]['ace'][has_ace]\
             ['total'][total]['upcard'][npmax(up_card.get_value())]
 
