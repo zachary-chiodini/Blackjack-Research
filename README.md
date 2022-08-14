@@ -1,6 +1,6 @@
 # Blackjack-Research
 ## Node Params
-<img src="pics/params.png" alt="params" width="50%"/>
+<img src="pics/params.png" alt="params" />
 
 ## Reward Calculation
-<img src="pics/reward.png" alt="rewards" width="50%"/>
+<img src="pics/reward.png" alt="rewards"/>
