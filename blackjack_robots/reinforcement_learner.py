@@ -149,9 +149,9 @@ class ReinforcementLearner(BasicStrategy):
     def push(self, hand: Hand) -> None:
         if self.reward_queue:
             node = self.reward_queue.pop(0)
-            node.reward = hand.bet
+            node.reward = 0
         else:
-            self.current_node.reward = hand.bet
+            self.current_node.reward = 0
         self.chips += hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'tied')
@@ -178,7 +178,7 @@ class ReinforcementLearner(BasicStrategy):
 
     def surrender(self, hand: Hand) -> str:
         if len(hand.cards) == 2:
-            self.current_node.reward = hand.bet // 2
+            self.current_node.reward = -hand.bet // 2
             self.chips += hand.bet // 2
             self.hands.remove(hand)
             self._reset()
@@ -203,9 +203,9 @@ class ReinforcementLearner(BasicStrategy):
     def won(self, hand: Hand) -> None:
         if self.reward_queue:
             node = self.reward_queue.pop(0)
-            node.reward = 2 * hand.bet
+            node.reward = hand.bet
         else:
-            self.current_node.reward = 2 * hand.bet
+            self.current_node.reward = hand.bet
         self.chips += 2 * hand.bet
         self.hands.remove(hand)
         self.show_score(hand, 'won')
@@ -213,7 +213,7 @@ class ReinforcementLearner(BasicStrategy):
         return None
 
     def won_blackjack(self, hand: Hand) -> None:
-        self.current_node.reward = int(hand.bet * 2.5)
+        self.current_node.reward = int(hand.bet * 1.5)
         self.chips += int(hand.bet * 2.5)
         self.hands.remove(hand)
         self.show_score(hand, 'won', blackjack=True)
