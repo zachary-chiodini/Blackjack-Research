@@ -15,7 +15,6 @@ class TestPlayer(ReinforcementLearner):
         self.nodes = []
 
     def ask_for_insurance(self) -> None:
-        self.asked_insurance = True
         hand = self.hands[0]
         up_card = Card('A', '', face_up=True)
         choice = self.decision(hand, up_card, insurance=1)
@@ -53,7 +52,6 @@ class TestPlayer(ReinforcementLearner):
             if bet < minimum_bet:
                 return wrong_input_response()
             if bet <= self.chips:
-                self.episode_index = len(self.state_path_matrix)
                 self.total_bet = bet
                 self.hands.append(Hand(bet=bet))
                 self.chips -= bet
@@ -77,17 +75,9 @@ class TestPlayer(ReinforcementLearner):
 
         if not self.hands:
             if self.root_node.state.any():
-                if self.asked_insurance:
-                    # If insurance is bought and not used,
-                    # the root node has a reward of -insurance = -25.
-                    if self.insurance:
-                        self.root_node.reward = -self.insurance - self.root_node.calc_reward()
-                        self.insurance = 0
-                    # If insurance is not bought and dealer does not have blackjack,
-                    # the root node has a reward of +insurance = +25.
-                    elif self.root_node.children[0].state.any():
-                        self.root_node.reward = 25 - self.root_node.calc_reward()
-                    self.asked_insurance = False
+                if self.insurance:
+                    self.root_node.reward = -self.insurance
+                    self.insurance = 0
                 recurse(self.root_node)
             print(self.state_path_matrix)
             print(self.action_path_matrix)
