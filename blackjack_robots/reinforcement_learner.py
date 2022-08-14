@@ -62,7 +62,6 @@ class ReinforcementLearner(BasicStrategy):
         if not neural_network.instantiated:
             raise ValueError('The argument "neural_network" must be an instantiated "NeuralNetwork" class object.')
         super().__init__()
-        self.asked_insurance = False
         self.name = 'Reinforcement Learner'
         self.policy = neural_network
         self.actions = ['h', 's', 'd', 'y', 'sur']
@@ -82,7 +81,6 @@ class ReinforcementLearner(BasicStrategy):
         return argmax(prob_actions, axis=1)
 
     def ask_for_insurance(self) -> None:
-        self.asked_insurance = True
         hand = self.hands[0]
         up_card = Card('A', '', face_up=True)
         choice = self.decision(hand, up_card, insurance=1)
@@ -190,7 +188,7 @@ class ReinforcementLearner(BasicStrategy):
 
     def use_insurance(self, hand: Hand) -> None:
         # If insurance is bought and used,
-        # the root node has a reward of bet + insurance = +75.
+        # the root node has a reward of bet + insurance.
         self.root_node.reward = self.insurance + hand.bet
         self.chips += self.insurance + hand.bet
         print(f"{self.name} insured hand {hand.show(f'{self.name} insured hand ')} for {self.insurance} chips.")
@@ -237,17 +235,9 @@ class ReinforcementLearner(BasicStrategy):
 
         if not self.hands:
             if self.root_node.state.any():
-                if self.asked_insurance:
-                    # If insurance is bought and not used,
-                    # the root node has a reward of -insurance = -25.
-                    if self.insurance:
-                        self.root_node.reward = -self.insurance - self.root_node.calc_reward()
-                        self.insurance = 0
-                    # If insurance is not bought and dealer does not have blackjack,
-                    # the root node has a reward of +insurance = +25.
-                    elif self.root_node.children[0].state.any():
-                        self.root_node.reward = 25 - self.root_node.calc_reward()
-                    self.asked_insurance = False
+                if self.insurance:
+                    self.root_node.reward = -self.insurance
+                    self.insurance = 0
                 recurse(self.root_node)
             self.current_node = Node()
             self.root_node = self.current_node
