@@ -234,11 +234,6 @@ class Player:
     def hit(*args) -> str:
         return 'h'
 
-    def stand(self, *args) -> str:
-        self.insurance = 0
-        self._your_turn = False
-        return 's'
-
     def lost(self, hand: Hand) -> None:
         self.hands.remove(hand)
         self.show_score(hand, 'lost')
@@ -303,6 +298,11 @@ class Player:
         print('You are not allowed to split.')
         sleep(self.sleep_int)
         return self.call(hand)
+
+    def stand(self, *args) -> str:
+        self.insurance = 0
+        self._your_turn = False
+        return 's'
 
     def surrender(self, hand: Hand) -> str:
         if len(hand.cards) == 2:

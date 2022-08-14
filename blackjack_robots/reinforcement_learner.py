@@ -69,7 +69,6 @@ class ReinforcementLearner(BasicStrategy):
         self.num_features = 6
         self.num_targets = len(self.actions)
         self.policy.initialize(self.num_features, self.num_targets)
-        self.episode_index = 0
         self.current_node = Node()
         self.root_node = self.current_node
         self.split_queue: List[Node] = []  # This is a FIFO queue.
@@ -148,19 +147,6 @@ class ReinforcementLearner(BasicStrategy):
         self.show_score(hand, 'lost')
         self._reset()
         return None
-
-    def place_bet(self, minimum_bet: int) -> bool:
-        if self.chips >= minimum_bet:
-            print(f'{self.name}; Chips: {self.chips}; Place bet: {minimum_bet}')
-            sleep(self.sleep_int)
-            self.episode_index = len(self.state_path_matrix)
-            self.total_bet = minimum_bet
-            self.hands.append(Hand(bet=minimum_bet))
-            self.chips -= minimum_bet
-            self.rounds += 1
-            self._your_turn = True
-            return True
-        return False
 
     def push(self, hand: Hand) -> None:
         if self.reward_queue:
