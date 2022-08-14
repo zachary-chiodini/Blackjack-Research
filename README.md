@@ -1,5 +1,5 @@
 # Blackjack-Research
-## Node Params
+### Node Params
 ![params](pics/params.png)
-## Reward Calculation
+### Reward Calculation
 ![rewards](pics/reward.png)
