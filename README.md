@@ -5,7 +5,7 @@
 ![params](pics/params.png)
 ### Reward Calculation
 ![rewards](pics/reward.png)
-### Goal
+### Goals
 1. Recreate basic strategy with deep reinforcement learning as a proof of concept.
 2. Explore features that may improve on basic strategy, such as true count or something novel.
 3. Find optimal bet spread with deep reinforcement learning.
