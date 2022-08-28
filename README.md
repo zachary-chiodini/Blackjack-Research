@@ -11,3 +11,8 @@
 5. Repeat steps 2-4 until profit is maximized.
 6. Explore evolutionary algorithms, if necessary.
 7. Become millionaire.
+
+###Other Strategies
+1. Playing two hands at the start
+2. Playing with others vs alone
+    - How does other player's strategy affect my own?
