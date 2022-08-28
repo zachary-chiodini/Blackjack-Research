@@ -1,9 +1,7 @@
 # Blackjack-Research
 
 ## Reinforcement Learning
-### Node Params
 ![params](pics/params.png)
-### Reward Calculation
 ![rewards](pics/reward.png)
 ### Goals
 1. Recreate basic strategy with deep reinforcement learning as a proof of concept.
